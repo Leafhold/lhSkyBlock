@@ -6,6 +6,11 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.Bukkit;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.Material;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -34,7 +39,7 @@ public class IslandCommand implements CommandExecutor {
 
         switch (args[0].toLowerCase()) {
             case "create":
-                if (!(islandMap.containsKey(uuid))) {
+                if (islandMap.containsKey(uuid)) {
                     player.sendMessage(ChatColor.RED + "Your island already exists. Use " + ChatColor.YELLOW + "/island home" + ChatColor.RED + " to teleport to your island.");
                 } else {
                     //todo create island
@@ -50,7 +55,7 @@ public class IslandCommand implements CommandExecutor {
                 break;
 
             case "help":
-                //todo help message
+                //todo Help message
                 break;
 
             case "home":
@@ -71,5 +76,26 @@ public class IslandCommand implements CommandExecutor {
         Location loc = islandMap.get(player.getUniqueId());
         player.sendMessage(ChatColor.AQUA + "Teleporting to your island...");
         player.teleport(loc.add(0.5, 1, 0.5));
+    }
+
+    private void IslandHelp(Player player) {
+        player.sendMessage(ChatColor.GOLD + "SkyBlock Commands:");
+        player.sendMessage(ChatColor.YELLOW + "/island create" + ChatColor.WHITE + " - Create a new island.");
+        player.sendMessage(ChatColor.YELLOW + "/island delete" + ChatColor.WHITE + " - Delete your island.");
+        player.sendMessage(ChatColor.YELLOW + "/island home" + ChatColor.WHITE + " - Teleport to your island.");
+        player.sendMessage(ChatColor.YELLOW + "/island help" + ChatColor.WHITE + " - Show this help message.");
+    }
+
+    private void CreateIslandGUI(Player player) {
+        Inventory islandGUI = Bukkit.createInventory(player, 54, "Manage island");
+
+        ItemStack home = new ItemStack(Material.SPRUCE_BOAT);
+        ItemMeta homeMeta = home.getItemMeta();
+        homeMeta.setDisplayName(ChatColor.AQUA + "Island home");
+        homeMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to teleport to your island."));
+        home.setItemMeta(homeMeta);
+        islandGUI.setItem(0, home);
+
+        player.openInventory(islandGUI);
     }
 }
