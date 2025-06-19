@@ -3,6 +3,8 @@ package org.leafhold.skyBlock;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import org.leafhold.skyBlock.commands.IslandCommand;
+
 public final class SkyBlock extends JavaPlugin {
     private static boolean isSpigot;
     private static boolean isPaper;
@@ -29,8 +31,9 @@ public final class SkyBlock extends JavaPlugin {
     public void onEnable() {
         if (!isSpigot) {
             Bukkit.getPluginManager().disablePlugin(this);
-        }
 
+        }
+        getCommand("island").setExecutor(new IslandCommand());
     }
 
     @Override
