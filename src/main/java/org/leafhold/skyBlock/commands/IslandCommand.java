@@ -97,14 +97,14 @@ public class IslandCommand implements CommandExecutor {
         homeMeta.setDisplayName(ChatColor.AQUA + "Island home");
         homeMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to teleport to your island."));
         home.setItemMeta(homeMeta);
-        islandGUI.setItem(0, home);        
-        
-        ItemStack delete = new ItemStack(Material.BARRIER);
-        ItemMeta deleteMeta = delete.getItemMeta();
-        deleteMeta.setDisplayName(ChatColor.RED + "Delete Island");
-        deleteMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to delete your island."));
-        delete.setItemMeta(deleteMeta);
-        islandGUI.setItem(1, delete);
+        islandGUI.setItem(0, home);
+
+        ItemStack members = new ItemStack(Material.PLAYER_HEAD);
+        ItemMeta membersMeta = members.getItemMeta();
+        membersMeta.setDisplayName(ChatColor.YELLOW + "Members");
+        membersMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to view your island members."));
+        members.setItemMeta(membersMeta);
+        islandGUI.setItem(1, members);
 
         ItemStack visitors = new ItemStack(Material.RED_CONCRETE);
         ItemMeta visitorsMeta = visitors.getItemMeta();
@@ -113,17 +113,24 @@ public class IslandCommand implements CommandExecutor {
             visitors = new ItemStack(Material.GREEN_CONCRETE);
             visitorsMeta.setLore(java.util.Arrays.asList(
                 ChatColor.GREEN + "ON",
-                ChatColor.GRAY + "Click to toggle visitor access."
+                ChatColor.GRAY + "Click to toggle access to visitors."
                 ));
         } else {
             visitors = new ItemStack(Material.RED_CONCRETE);
             visitorsMeta.setLore(java.util.Arrays.asList(
                 ChatColor.RED + "OFF",
-                ChatColor.GRAY + "Click to toggle visitor access."
+                ChatColor.GRAY + "Click to toggle access to visitors."
                 ));
         }
         visitors.setItemMeta(visitorsMeta);
         islandGUI.setItem(2, visitors);
+
+        ItemStack delete = new ItemStack(Material.BARRIER);
+        ItemMeta deleteMeta = delete.getItemMeta();
+        deleteMeta.setDisplayName(ChatColor.RED + "Delete island");
+        deleteMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to delete your island."));
+        delete.setItemMeta(deleteMeta);
+        islandGUI.setItem(3, delete);
 
         player.openInventory(islandGUI);
     }
