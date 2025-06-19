@@ -36,8 +36,9 @@ public final class SkyBlock extends JavaPlugin {
             return;
         }
         instance = this;
-        getCommand("island").setExecutor(new IslandCommand());
-        getServer().getPluginManager().registerEvents(new IslandCommand(), this);
+        IslandCommand islandCommand = new IslandCommand();
+        getCommand("island").setExecutor(islandCommand);
+        getServer().getPluginManager().registerEvents(islandCommand, instance);
     }
 
     @Override
