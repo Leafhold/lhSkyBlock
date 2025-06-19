@@ -11,12 +11,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.Listener;
+import org.bukkit.event.EventHandler;
 
 import java.util.HashMap;
 import java.util.UUID;
 
 @SuppressWarnings({"deprecation"})
-public class IslandCommand implements CommandExecutor {
+public class IslandCommand implements CommandExecutor, Listener {
 
     public static final HashMap<UUID, Location> islandMap = new HashMap<>();
 
@@ -29,6 +32,10 @@ public class IslandCommand implements CommandExecutor {
         Player player = (Player) sender;
         UUID uuid = player.getUniqueId();
         if (args.length == 0) {
+
+            //! remove
+            createIslandGUI(player);
+            
             if (islandMap.containsKey(uuid)) {
                 createIslandGUI(player);
             } else {
@@ -88,23 +95,23 @@ public class IslandCommand implements CommandExecutor {
 
     private void createIslandGUI(Player player) {
         //todo fetch allow_visitors
-        boolean allowVisitors = true; //! Placeholder
+        boolean allowVisitors = false;
         
-        Inventory islandGUI = Bukkit.createInventory(player, 54, "Manage island");
+        Inventory islandGUI = Bukkit.createInventory(player, 27, "Manage island");
 
         ItemStack home = new ItemStack(Material.GRASS_BLOCK);
         ItemMeta homeMeta = home.getItemMeta();
         homeMeta.setDisplayName(ChatColor.AQUA + "Island home");
         homeMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to teleport to your island."));
         home.setItemMeta(homeMeta);
-        islandGUI.setItem(0, home);
+        islandGUI.setItem(11, home);
 
         ItemStack members = new ItemStack(Material.PLAYER_HEAD);
         ItemMeta membersMeta = members.getItemMeta();
         membersMeta.setDisplayName(ChatColor.YELLOW + "Members");
         membersMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to view your island members."));
         members.setItemMeta(membersMeta);
-        islandGUI.setItem(1, members);
+        islandGUI.setItem(22, members);
 
         ItemStack visitors = new ItemStack(Material.RED_CONCRETE);
         ItemMeta visitorsMeta = visitors.getItemMeta();
@@ -123,15 +130,85 @@ public class IslandCommand implements CommandExecutor {
                 ));
         }
         visitors.setItemMeta(visitorsMeta);
-        islandGUI.setItem(2, visitors);
+        islandGUI.setItem(4, visitors);
 
         ItemStack delete = new ItemStack(Material.BARRIER);
         ItemMeta deleteMeta = delete.getItemMeta();
         deleteMeta.setDisplayName(ChatColor.RED + "Delete island");
         deleteMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to delete your island."));
         delete.setItemMeta(deleteMeta);
-        islandGUI.setItem(3, delete);
+        islandGUI.setItem(15, delete);
 
         player.openInventory(islandGUI);
+    }
+    
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
+
+        switch (event.getView().getTitle()) {
+            case "Manage island":
+                event.setCancelled(true);
+
+                // Check if the player clicked your item
+                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
+                    
+                    switch (event.getCurrentItem().getType()) {
+                        case GRASS_BLOCK:
+                            // todo player.teleport(islandMap.get(player.getUniqueId()).add(0.5, 1, 0.5));
+                            player.sendMessage(ChatColor.AQUA + "Teleporting to your island...");
+                            break;
+
+                        case RED_CONCRETE:
+                            // todo toggle allow visitors
+                            player.sendMessage(ChatColor.AQUA + "Denied players to visit your island.");
+                            break;
+
+                        case GREEN_CONCRETE:
+                            // todo toggle allow visitors
+                            player.sendMessage(ChatColor.AQUA + "Allowed players to visit your island.");
+                            break;
+
+                        case BARRIER:
+                            //todo delete island
+                            player.sendMessage(ChatColor.AQUA + "Deleting your island.");
+                            break;
+
+                        case PLAYER_HEAD:
+                            //todo members GUI
+                            createMembersGUI(player);
+                            break;
+
+                        default:
+                            player.sendMessage(ChatColor.RED + "Unknown item clicked!");
+                            break;
+                    }
+                }
+                break;
+            case "Manage island members":
+                event.setCancelled(true);
+                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
+                    player.sendMessage("IT WORKS!");
+                }  
+                break;
+            default:
+                // * Do nothing for other inventories
+                break;
+        }
+    }
+    
+    private void createMembersGUI(Player player) {
+        Inventory membersGUI = Bukkit.createInventory(player, 27, "Manage island members");
+
+        ItemStack players = new ItemStack(Material.PLAYER_HEAD);
+        ItemMeta playersMeta = players.getItemMeta();
+        playersMeta.setDisplayName(ChatColor.YELLOW + "Player");
+        players.setItemMeta(playersMeta);
+
+        for (int i = 10; i < 17; i++) {
+            membersGUI.setItem(i, players);
+        }
+
+        player.openInventory(membersGUI);
     }
 }

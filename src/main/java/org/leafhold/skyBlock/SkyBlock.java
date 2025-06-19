@@ -29,6 +29,7 @@ public final class SkyBlock extends JavaPlugin {
     }
 
     @Override
+    
     public void onEnable() {
         if (!isSpigot) {
             Bukkit.getPluginManager().disablePlugin(this);
@@ -36,7 +37,7 @@ public final class SkyBlock extends JavaPlugin {
         }
         instance = this;
         getCommand("island").setExecutor(new IslandCommand());
-
+        getServer().getPluginManager().registerEvents(new IslandCommand(), this);
     }
 
     @Override
