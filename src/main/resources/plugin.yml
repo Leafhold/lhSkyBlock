@@ -1,0 +1,5 @@
+name: SkyBlock
+version: '1.0-SNAPSHOT'
+main: org.leafhold.skyBlock.SkyBlock
+api-version: '1.21'
+load: STARTUP
