@@ -155,7 +155,7 @@ public class IslandCommand implements CommandExecutor, Listener {
                 .color(NamedTextColor.YELLOW)
                 .clickEvent(ClickEvent.runCommand("/island delete"))
                 )
-            .append(null, Component.text(" - Delete your island.")
+            .append(null, Component.text(" - Delete your island."))
             .append(Component.newline()
             .append(
                 Component.text("/island home")
