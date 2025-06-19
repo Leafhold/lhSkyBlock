@@ -5,3 +5,10 @@ api-version: '1.21.5'
 load: STARTUP
 depend: [Vault]
 loadbefore: [Vault]
+commands:
+  island:
+    description: Manage your island
+    usage: "/island <arg>"
+    aliases: [is]
+    permission: skyblock.island
+    permission-message: "You do not have permission to use this command."
