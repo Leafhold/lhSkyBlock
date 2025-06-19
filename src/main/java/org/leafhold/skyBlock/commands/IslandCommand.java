@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 import java.util.HashMap;
 import java.util.UUID;
 
-@SuppressWarnings({"deprecation", ""})
+@SuppressWarnings({"deprecation"})
 public class IslandCommand implements CommandExecutor {
 
     public static final HashMap<UUID, Location> islandMap = new HashMap<>();
