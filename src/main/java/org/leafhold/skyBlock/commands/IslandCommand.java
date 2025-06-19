@@ -10,6 +10,12 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.Listener;
@@ -26,7 +32,9 @@ public class IslandCommand implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Only players can execute this command.");
+            final TextComponent message = Component.text("Only players can use this command.")
+                .color(NamedTextColor.RED);
+            sender.sendMessage(message);
             return true;
         }
         Player player = (Player) sender;
@@ -39,7 +47,17 @@ public class IslandCommand implements CommandExecutor, Listener {
             if (islandMap.containsKey(uuid)) {
                 createIslandGUI(player);
             } else {
-                player.sendMessage(ChatColor.RED + "You do not have an island yet. Use " + ChatColor.YELLOW + "/island create" + ChatColor.RED + " to create one.");
+                final TextComponent message = Component.text("You do not have an island yet. Use ")
+                    .color(NamedTextColor.RED)
+                    .append(
+                        Component.text("/island create")
+                            .color(NamedTextColor.YELLOW)
+                            .hoverEvent(Component.text("Click to create your island."))
+                            .clickEvent(ClickEvent.runCommand("/island create"))
+                    )
+                    .append(Component.text(" to create one.").color(NamedTextColor.RED));
+                    
+                player.sendMessage(message);
             }
             return true;
         }
@@ -47,7 +65,16 @@ public class IslandCommand implements CommandExecutor, Listener {
         switch (args[0].toLowerCase()) {
             case "create":
                 if (islandMap.containsKey(uuid)) {
-                    player.sendMessage(ChatColor.RED + "Your island already exists. Use " + ChatColor.YELLOW + "/island home" + ChatColor.RED + " to teleport to your island.");
+                    final TextComponent message = Component.text("You already have an island. Use ")
+                        .color(NamedTextColor.RED)
+                        .append(
+                            Component.text("/island home")
+                                .color(NamedTextColor.YELLOW)
+                                .hoverEvent(Component.text("Click to teleport to your island."))
+                                .clickEvent(ClickEvent.runCommand("/island home"))
+                        )
+                        .append(Component.text(" to teleport to your island.").color(NamedTextColor.RED));
+                    player.sendMessage(message);
                 } else {
                     //todo create island
                 }
@@ -57,7 +84,16 @@ public class IslandCommand implements CommandExecutor, Listener {
                 if (islandMap.containsKey(uuid)) {
                     //todo delete island
                 } else {
-                    player.sendMessage(ChatColor.RED + "You do not have an island to delete. Use " + ChatColor.YELLOW + "/island create" + ChatColor.RED + " to create one.");
+                    final TextComponent message = Component.text("You do not have an island to delete. Use ")
+                        .color(NamedTextColor.RED)
+                        .append(
+                            Component.text("/island create")
+                                .color(NamedTextColor.YELLOW)
+                                .hoverEvent(Component.text("Click to create your island."))
+                                .clickEvent(ClickEvent.runCommand("/island create"))
+                        )
+                        .append(Component.text(" to create one.").color(NamedTextColor.RED));
+                    player.sendMessage(message);
                 }
                 break;
                 
@@ -69,12 +105,30 @@ public class IslandCommand implements CommandExecutor, Listener {
                 if (islandMap.containsKey(uuid)) {
                     teleportToIsland(player);
                 } else {
-                    player.sendMessage(ChatColor.RED + "You do not have an island yet. Try " + ChatColor.YELLOW + "/island create" + ChatColor.RED + " to create one.");
+                    final TextComponent message = Component.text("You do not have an island yet. Use ")
+                        .color(NamedTextColor.RED)
+                        .append(
+                            Component.text("/island create")
+                                .color(NamedTextColor.YELLOW)
+                                .hoverEvent(Component.text("Click to create your island."))
+                                .clickEvent(ClickEvent.runCommand("/island create"))
+                        )
+                        .append(Component.text(" to create one.").color(NamedTextColor.RED));
+                    player.sendMessage(message);
                 }
                 break;
 
             default:
-                player.sendMessage(ChatColor.RED + "Unknown command. Try" + ChatColor.YELLOW + "/island help" + ChatColor.RED + "instead.");
+                final TextComponent message = Component.text("Unknown command. Try ")
+                    .color(NamedTextColor.RED)
+                    .append(
+                        Component.text("/island help")
+                            .color(NamedTextColor.YELLOW)
+                            .hoverEvent(Component.text("Click to see available commands."))
+                            .clickEvent(ClickEvent.runCommand("/island help"))
+                    )
+                    .append(Component.text(" instead.").color(NamedTextColor.RED));
+                player.sendMessage(message);
         }
         return true;
     }
@@ -86,11 +140,37 @@ public class IslandCommand implements CommandExecutor, Listener {
     }
 
     private void islandHelp(Player player) {
-        player.sendMessage(ChatColor.GOLD + "SkyBlock Commands:");
-        player.sendMessage(ChatColor.YELLOW + "/island create" + ChatColor.WHITE + " - Create a new island.");
-        player.sendMessage(ChatColor.YELLOW + "/island delete" + ChatColor.WHITE + " - Delete your island.");
-        player.sendMessage(ChatColor.YELLOW + "/island home" + ChatColor.WHITE + " - Teleport to your island.");
-        player.sendMessage(ChatColor.YELLOW + "/island help" + ChatColor.WHITE + " - Show this help message.");
+        final TextComponent message = Component.text("Available commands:")
+            .color(NamedTextColor.GOLD)
+            .append(Component.newline())
+            .append(
+                Component.text("/island create")
+                .color(NamedTextColor.YELLOW)
+                .clickEvent(ClickEvent.runCommand("/island create"))
+                )
+            .append(Component.text(" - Create a new island."))
+            .append(Component.newline())
+            .append(
+                Component.text("/island delete")
+                .color(NamedTextColor.YELLOW)
+                .clickEvent(ClickEvent.runCommand("/island delete"))
+                )
+            .append(null, Component.text(" - Delete your island.")
+            .append(Component.newline()
+            .append(
+                Component.text("/island home")
+                .color(NamedTextColor.YELLOW)
+                .clickEvent(ClickEvent.runCommand("/island home"))
+                .append(Component.text(" - Teleport to your island.")
+                )
+            .append(Component.newline())
+            .append(
+                Component.text("/island help")
+                .color(NamedTextColor.YELLOW)
+                .clickEvent(ClickEvent.runCommand("/island help"))
+                .append(Component.text(" - Show this help message.")
+            ))));
+        player.sendMessage(message);
     }
 
     private void createIslandGUI(Player player) {
