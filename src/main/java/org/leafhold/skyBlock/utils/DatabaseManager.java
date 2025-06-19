@@ -25,7 +25,6 @@ public class DatabaseManager {
                 "public BOOLEAN NOT NULL DEFAULT false," +
                 "x INTEGER NOT NULL," +
                 "z INTEGER NOT NULL);" +
-
                 "CREATE TABLE IF NOT EXISTS island_members (" +
                 "island_uuid UUID NOT NULL REFERENCES islands(uuid)," +
                 "member_uuid UUID NOT NULL," +

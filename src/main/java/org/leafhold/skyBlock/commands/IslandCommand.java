@@ -28,13 +28,13 @@ public class IslandCommand implements CommandExecutor {
         }
         Player player = (Player) sender;
         UUID uuid = player.getUniqueId();
-
         if (args.length == 0) {
             if (islandMap.containsKey(uuid)) {
-                //todo Open island GUI
+                createIslandGUI(player);
             } else {
                 player.sendMessage(ChatColor.RED + "You do not have an island yet. Use " + ChatColor.YELLOW + "/island create" + ChatColor.RED + " to create one.");
             }
+            return true;
         }
 
         switch (args[0].toLowerCase()) {
@@ -53,14 +53,14 @@ public class IslandCommand implements CommandExecutor {
                     player.sendMessage(ChatColor.RED + "You do not have an island to delete. Use " + ChatColor.YELLOW + "/island create" + ChatColor.RED + " to create one.");
                 }
                 break;
-
+                
             case "help":
-                //todo Help message
+                islandHelp(player);
                 break;
 
             case "home":
                 if (islandMap.containsKey(uuid)) {
-                    //todo teleportToIsland(player);
+                    teleportToIsland(player);
                 } else {
                     player.sendMessage(ChatColor.RED + "You do not have an island yet. Try " + ChatColor.YELLOW + "/island create" + ChatColor.RED + " to create one.");
                 }
@@ -92,34 +92,38 @@ public class IslandCommand implements CommandExecutor {
         
         Inventory islandGUI = Bukkit.createInventory(player, 54, "Manage island");
 
-        ItemStack home = new ItemStack(Material.SPRUCE_BOAT);
+        ItemStack home = new ItemStack(Material.GRASS_BLOCK);
         ItemMeta homeMeta = home.getItemMeta();
         homeMeta.setDisplayName(ChatColor.AQUA + "Island home");
         homeMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to teleport to your island."));
         home.setItemMeta(homeMeta);
-        islandGUI.setItem(0, home);
-
-        ItemStack delete = new ItemStack(Material.SPRUCE_BOAT);
-        ItemMeta deleteMeta = home.getItemMeta();
-        deleteMeta.setDisplayName(ChatColor.AQUA + "Island home");
-        deleteMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to teleport to your island."));
+        islandGUI.setItem(0, home);        
+        
+        ItemStack delete = new ItemStack(Material.BARRIER);
+        ItemMeta deleteMeta = delete.getItemMeta();
+        deleteMeta.setDisplayName(ChatColor.RED + "Delete Island");
+        deleteMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to delete your island."));
         delete.setItemMeta(deleteMeta);
         islandGUI.setItem(1, delete);
 
-        ItemStack visitors = new ItemStack(Material.OAK_SIGN);
+        ItemStack visitors = new ItemStack(Material.RED_CONCRETE);
         ItemMeta visitorsMeta = visitors.getItemMeta();
         visitorsMeta.setDisplayName(ChatColor.AQUA + "Allow visitors");
         if (allowVisitors) {
+            visitors = new ItemStack(Material.GREEN_CONCRETE);
             visitorsMeta.setLore(java.util.Arrays.asList(
                 ChatColor.GREEN + "ON",
                 ChatColor.GRAY + "Click to toggle visitor access."
                 ));
         } else {
+            visitors = new ItemStack(Material.RED_CONCRETE);
             visitorsMeta.setLore(java.util.Arrays.asList(
                 ChatColor.RED + "OFF",
                 ChatColor.GRAY + "Click to toggle visitor access."
                 ));
         }
+        visitors.setItemMeta(visitorsMeta);
+        islandGUI.setItem(2, visitors);
 
         player.openInventory(islandGUI);
     }

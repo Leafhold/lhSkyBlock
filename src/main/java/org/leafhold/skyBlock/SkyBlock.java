@@ -32,7 +32,7 @@ public final class SkyBlock extends JavaPlugin {
     public void onEnable() {
         if (!isSpigot) {
             Bukkit.getPluginManager().disablePlugin(this);
-
+            return;
         }
         instance = this;
         getCommand("island").setExecutor(new IslandCommand());
