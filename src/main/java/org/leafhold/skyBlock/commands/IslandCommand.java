@@ -40,11 +40,13 @@ public class IslandCommand implements CommandExecutor, Listener {
             sender.sendMessage(message);
             return true;
         }
-        try {
-            databaseManager = DatabaseManager.getInstance();
-            databaseManager.connect();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (databaseManager == null) {
+            try {
+                databaseManager = DatabaseManager.getInstance();
+                databaseManager.connect();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         Player player = (Player) sender;
         UUID uuid = player.getUniqueId();
@@ -265,10 +267,6 @@ public class IslandCommand implements CommandExecutor, Listener {
                         case "Members":
                             //todo members GUI
                             membersGUI(player);
-                            break;
-
-                        default:
-                            player.sendMessage(ChatColor.RED + "Unknown item clicked!");
                             break;
                     }
                 }

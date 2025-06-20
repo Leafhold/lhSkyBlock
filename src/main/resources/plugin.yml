@@ -8,7 +8,7 @@ loadbefore: [Vault]
 commands:
   island:
     description: Manage your island
-    usage: "/island <arg>"
+    usage: "/island <create|delete|home|help>"
     aliases: [is]
     permission: skyblock.island
     permission-message: "You do not have permission to use this command."
