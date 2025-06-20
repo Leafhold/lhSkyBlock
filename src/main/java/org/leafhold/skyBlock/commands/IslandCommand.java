@@ -10,6 +10,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.leafhold.skyBlock.utils.DatabaseManager;
 
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -21,13 +22,14 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.UUID;
 
 @SuppressWarnings({"deprecation"})
 public class IslandCommand implements CommandExecutor, Listener {
 
-    public static final HashMap<UUID, Location> islandMap = new HashMap<>();
+    public static final HashMap<UUID, UUID> islandMap = new HashMap<>(); //todo remove this, use database
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -40,12 +42,8 @@ public class IslandCommand implements CommandExecutor, Listener {
         Player player = (Player) sender;
         UUID uuid = player.getUniqueId();
         if (args.length == 0) {
-
-            //! remove
-            createIslandGUI(player);
-            
             if (islandMap.containsKey(uuid)) {
-                createIslandGUI(player);
+                islandGUI(player);
             } else {
                 final TextComponent message = Component.text("You do not have an island yet. Use ")
                     .color(NamedTextColor.RED)
@@ -76,7 +74,7 @@ public class IslandCommand implements CommandExecutor, Listener {
                         .append(Component.text(" to teleport to your island.").color(NamedTextColor.RED));
                     player.sendMessage(message);
                 } else {
-                    //todo create island
+                    createIslandGUI(player);
                 }
                 break;
 
@@ -134,9 +132,7 @@ public class IslandCommand implements CommandExecutor, Listener {
     }
 
     private void teleportToIsland(Player player) {
-        Location loc = islandMap.get(player.getUniqueId());
-        player.sendMessage(ChatColor.AQUA + "Teleporting to your island...");
-        player.teleport(loc.add(0.5, 1, 0.5));
+        //todo fetch island location from database and teleport player
     }
 
     private void islandHelp(Player player) {
@@ -173,7 +169,7 @@ public class IslandCommand implements CommandExecutor, Listener {
         player.sendMessage(message);
     }
 
-    private void createIslandGUI(Player player) {
+    private void islandGUI(Player player) {
         //todo fetch allow_visitors
         boolean allowVisitors = false;
         
@@ -223,7 +219,7 @@ public class IslandCommand implements CommandExecutor, Listener {
     }
     
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
+    public void onInventoryClick(InventoryClickEvent event) throws SQLException {
         Player player = (Player) event.getWhoClicked();
 
         switch (event.getView().getTitle()) {
@@ -233,30 +229,27 @@ public class IslandCommand implements CommandExecutor, Listener {
                 // Check if the player clicked your item
                 if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
                     
-                    switch (event.getCurrentItem().getType()) {
-                        case GRASS_BLOCK:
+                    switch (event.getCurrentItem().getItemMeta().getDisplayName()) {
+                        case "Island home":
                             // todo player.teleport(islandMap.get(player.getUniqueId()).add(0.5, 1, 0.5));
                             player.sendMessage(ChatColor.AQUA + "Teleporting to your island...");
                             break;
 
-                        case RED_CONCRETE:
+                        case "Allow visitors":
                             // todo toggle allow visitors
-                            player.sendMessage(ChatColor.AQUA + "Denied players to visit your island.");
+                            //player.sendMessage(ChatColor.AQUA + "Denied players to visit your island.");
+                            // todo toggle allow visitors
+                            //player.sendMessage(ChatColor.AQUA + "Allowed players to visit your island.");
                             break;
 
-                        case GREEN_CONCRETE:
-                            // todo toggle allow visitors
-                            player.sendMessage(ChatColor.AQUA + "Allowed players to visit your island.");
-                            break;
-
-                        case BARRIER:
+                        case "Delete island":
                             //todo delete island
                             player.sendMessage(ChatColor.AQUA + "Deleting your island.");
                             break;
 
-                        case PLAYER_HEAD:
+                        case "Members":
                             //todo members GUI
-                            createMembersGUI(player);
+                            membersGUI(player);
                             break;
 
                         default:
@@ -271,13 +264,40 @@ public class IslandCommand implements CommandExecutor, Listener {
                     player.sendMessage("IT WORKS!");
                 }  
                 break;
+            case "Create your island":
+                event.setCancelled(true);
+
+                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
+                    switch (event.getCurrentItem().getItemMeta().getDisplayName()) {
+                        case "§aCreate Island":
+                            //todo create island
+                            player.sendMessage(ChatColor.GREEN + "Creating your island...");
+                            String islandUUID = DatabaseManager.getInstance().createIsland(
+                                player.getUniqueId().toString(), 
+                                player.getName() + "'s Island",
+                                "islands", //todo add world selection logic
+                                0,
+                                0
+                            );
+                            if (islandUUID != null) {
+                                player.sendMessage(ChatColor.GREEN + "Island created successfully!");
+                                //todo teleport to island
+                            }
+                            else {
+                                player.sendMessage(ChatColor.RED + "Failed to create island. You might already have one.");
+                            }
+                        break;
+                    }
+                }
+                break;
+                
             default:
-                // * Do nothing for other inventories
+                player.sendMessage(ChatColor.RED + "Unknown item clicked!");
                 break;
         }
     }
     
-    private void createMembersGUI(Player player) {
+    private void membersGUI(Player player) {
         Inventory membersGUI = Bukkit.createInventory(player, 27, "Manage island members");
 
         ItemStack players = new ItemStack(Material.PLAYER_HEAD);
@@ -290,5 +310,20 @@ public class IslandCommand implements CommandExecutor, Listener {
         }
 
         player.openInventory(membersGUI);
+    }
+
+    private void createIslandGUI(Player player) {
+        Inventory createIslandGUI = Bukkit.createInventory(player, 27, "Create your island");
+
+        ItemStack create = new ItemStack(Material.GRASS_BLOCK);
+        ItemMeta createMeta = create.getItemMeta();
+        createMeta.setDisplayName("§aCreate Island");
+        createMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to create your island."));
+        create.setItemMeta(createMeta);
+        createIslandGUI.setItem(13, create);
+
+        player.openInventory(createIslandGUI);
+
+
     }
 }

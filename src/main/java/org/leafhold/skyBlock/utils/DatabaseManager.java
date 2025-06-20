@@ -1,4 +1,4 @@
-package org.leafhold.skyBlock.utils;
+    package org.leafhold.skyBlock.utils;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.leafhold.skyBlock.SkyBlock;
@@ -79,6 +79,28 @@ public class DatabaseManager {
         }
         try (PreparedStatement preparedStatement = connection.prepareStatement(memberTable)) {
             preparedStatement.executeUpdate();
+        }
+    }
+
+    public String createIsland(String ownerUUID, String name, String world, int x, int z) throws SQLException {
+        String sql = "SELECT * FROM islands WHERE owner = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, ownerUUID);
+            if (preparedStatement.executeQuery().next()) {
+                return null;
+            }
+        }
+        sql = "INSERT INTO islands (uuid, owner, name, world, x, z) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            String islandUUID = java.util.UUID.randomUUID().toString();
+            preparedStatement.setString(1, islandUUID);
+            preparedStatement.setString(2, ownerUUID);
+            preparedStatement.setString(3, name);
+            preparedStatement.setString(4, world);
+            preparedStatement.setInt(5, x);
+            preparedStatement.setInt(6, z);
+            preparedStatement.executeUpdate();
+            return islandUUID;
         }
     }
 }
