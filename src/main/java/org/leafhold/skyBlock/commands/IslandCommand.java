@@ -290,10 +290,6 @@ public class IslandCommand implements CommandExecutor, Listener {
                     }
                 }
                 break;
-                
-            default:
-                player.sendMessage(ChatColor.RED + "Unknown item clicked!");
-                break;
         }
     }
     
