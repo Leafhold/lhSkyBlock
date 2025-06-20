@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
+import java.util.List;
+import java.util.ArrayList;
 
 public class DatabaseManager {
     private static DatabaseManager instance;
@@ -83,7 +85,7 @@ public class DatabaseManager {
     }
 
     public String createIsland(String ownerUUID, String name, String world, int x, int z) throws SQLException {
-        String sql = "SELECT * FROM islands WHERE owner = ?";
+        String sql = "SELECT uuid FROM islands WHERE owner = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, ownerUUID);
             if (preparedStatement.executeQuery().next()) {
@@ -101,6 +103,19 @@ public class DatabaseManager {
             preparedStatement.setInt(6, z);
             preparedStatement.executeUpdate();
             return islandUUID;
+        }
+    }
+
+    public List<String> getIslandsByOwner(String ownerUUID) throws SQLException {
+        String sql = "SELECT uuid FROM islands WHERE owner = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, ownerUUID);
+            var resultSet = preparedStatement.executeQuery();
+            List<String> islands = new ArrayList<>();
+            while (resultSet.next()) {
+                islands.add(resultSet.getString("uuid"));
+            }
+            return islands;
         }
     }
 }

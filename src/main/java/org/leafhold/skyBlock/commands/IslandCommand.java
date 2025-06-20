@@ -25,11 +25,12 @@ import org.bukkit.event.EventHandler;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
 
 @SuppressWarnings({"deprecation"})
 public class IslandCommand implements CommandExecutor, Listener {
-
-    public static final HashMap<UUID, UUID> islandMap = new HashMap<>(); //todo remove this, use database
+    private DatabaseManager databaseManager;
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -39,10 +40,24 @@ public class IslandCommand implements CommandExecutor, Listener {
             sender.sendMessage(message);
             return true;
         }
+        try {
+            databaseManager = DatabaseManager.getInstance();
+            databaseManager.connect();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         Player player = (Player) sender;
         UUID uuid = player.getUniqueId();
+        List<String> userIslands = new ArrayList<>();
+        try {
+            userIslands = databaseManager.getIslandsByOwner(uuid.toString());
+        } catch (SQLException e) {
+            player.sendMessage(NamedTextColor.RED + "An error occurred while fetching your islands. Please try again later.");
+            e.printStackTrace();
+            return true;
+        }
         if (args.length == 0) {
-            if (islandMap.containsKey(uuid)) {
+            if (!userIslands.isEmpty()) {
                 islandGUI(player);
             } else {
                 final TextComponent message = Component.text("You do not have an island yet. Use ")
@@ -62,7 +77,7 @@ public class IslandCommand implements CommandExecutor, Listener {
 
         switch (args[0].toLowerCase()) {
             case "create":
-                if (islandMap.containsKey(uuid)) {
+                if (!userIslands.isEmpty()) {
                     final TextComponent message = Component.text("You already have an island. Use ")
                         .color(NamedTextColor.RED)
                         .append(
@@ -79,7 +94,7 @@ public class IslandCommand implements CommandExecutor, Listener {
                 break;
 
             case "delete":
-                if (islandMap.containsKey(uuid)) {
+                if (!userIslands.isEmpty()) {
                     //todo delete island
                 } else {
                     final TextComponent message = Component.text("You do not have an island to delete. Use ")
@@ -100,7 +115,7 @@ public class IslandCommand implements CommandExecutor, Listener {
                 break;
 
             case "home":
-                if (islandMap.containsKey(uuid)) {
+                if (!userIslands.isEmpty()) {
                     teleportToIsland(player);
                 } else {
                     final TextComponent message = Component.text("You do not have an island yet. Use ")
