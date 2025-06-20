@@ -38,11 +38,10 @@ public final class SkyBlock extends JavaPlugin {
         instance = this;
         saveDefaultConfig();
 
-        DatabaseManager databaseManager = new DatabaseManager();
-
         try {
-            databaseManager.connect();
+            DatabaseManager.getInstance().connect();
         } catch (Exception e) {
+            getLogger().severe("Failed to connect to database: " + e.getMessage());
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
@@ -54,7 +53,7 @@ public final class SkyBlock extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        //todo Plugin shutdown logic
+        DatabaseManager.getInstance().disconnect();
     }
 
     public static SkyBlock getInstance() {

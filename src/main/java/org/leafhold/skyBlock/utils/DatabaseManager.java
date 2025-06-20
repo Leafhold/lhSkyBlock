@@ -9,9 +9,19 @@ import java.sql.SQLException;
 import java.sql.PreparedStatement;
 
 public class DatabaseManager {
+    private static DatabaseManager instance;
     private Connection connection;
 
-    public void connect() {
+    private DatabaseManager() {}
+
+    public static DatabaseManager getInstance() {
+        if (instance == null) {
+            instance = new DatabaseManager();
+        }
+        return instance;
+    }
+
+    public void connect() throws SQLException {
         FileConfiguration config = SkyBlock.getInstance().getConfig();
         String host = config.getString("db.host");
         int port = config.getInt("db.port");
@@ -24,7 +34,7 @@ public class DatabaseManager {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             SkyBlock.getInstance().getLogger().severe("MySQL connector not found! Please add it to your server's libraries.");
-            return;
+            throw new SQLException("MySQL driver not found");
         }
 
         try {
@@ -34,6 +44,17 @@ public class DatabaseManager {
         } catch (SQLException e) {
             SkyBlock.getInstance().getLogger().severe("Could not connect to the database! Please check your configuration.");
         }   
+    }
+
+    public void disconnect() {
+        if (connection != null) {
+            try {
+                connection.close();
+                SkyBlock.getInstance().getLogger().info("Disconnected from the database successfully!");
+            } catch (SQLException e) {
+                SkyBlock.getInstance().getLogger().severe("Failed to disconnect from the database: " + e.getMessage());
+            }
+        }
     }
 
     private void createTable() throws SQLException {
@@ -50,7 +71,9 @@ public class DatabaseManager {
             "island_uuid UUID NOT NULL REFERENCES islands(uuid)," +
             "member_uuid UUID NOT NULL," +
             "role TEXT NOT NULL DEFAULT 'member'," +
-            "PRIMARY KEY (island_uuid, member_uuid));";
+            "PRIMARY KEY (island_uuid, member_uuid)," +
+            "FOREIGN KEY (island_uuid) REFERENCES islands(uuid));";
+        
         try (PreparedStatement preparedStatement = connection.prepareStatement(islandTable)) {
             preparedStatement.executeUpdate();
         }
