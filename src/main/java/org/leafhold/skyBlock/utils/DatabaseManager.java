@@ -82,7 +82,7 @@ public class DatabaseManager {
         }
     }
 
-    public String createIsland(String ownerUUID, String name, String world, int x, int z) throws SQLException {
+    public String islandUUID(String ownerUUID, String name, String world, int x, int z) throws SQLException {
         String sql = "SELECT * FROM islands WHERE owner = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, ownerUUID);
