@@ -1,6 +1,6 @@
 package org.leafhold.skyBlock.commands;
 
-import org.bukkit.ChatColor;
+import org.bukkit.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -194,32 +194,32 @@ public class IslandCommand implements CommandExecutor, Listener {
 
         ItemStack home = new ItemStack(Material.GRASS_BLOCK);
         ItemMeta homeMeta = home.getItemMeta();
-        homeMeta.setDisplayName(ChatColor.AQUA + "Island home");
-        homeMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to teleport to your island."));
+        homeMeta.setDisplayName(NamedTextColor.AQUA + "Island home");
+        homeMeta.setLore(java.util.Collections.singletonList(NamedTextColor.GRAY + "Click to teleport to your island."));
         home.setItemMeta(homeMeta);
         islandGUI.setItem(11, home);
 
         ItemStack members = new ItemStack(Material.PLAYER_HEAD);
         ItemMeta membersMeta = members.getItemMeta();
-        membersMeta.setDisplayName(ChatColor.YELLOW + "Members");
-        membersMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to view your island members."));
+        membersMeta.setDisplayName(NamedTextColor.YELLOW + "Members");
+        membersMeta.setLore(java.util.Collections.singletonList(NamedTextColor.GRAY + "Click to view your island members."));
         members.setItemMeta(membersMeta);
         islandGUI.setItem(22, members);
 
         ItemStack visitors = new ItemStack(Material.RED_CONCRETE);
         ItemMeta visitorsMeta = visitors.getItemMeta();
-        visitorsMeta.setDisplayName(ChatColor.AQUA + "Allow visitors");
+        visitorsMeta.setDisplayName(NamedTextColor.AQUA + "Allow visitors");
         if (allowVisitors) {
             visitors = new ItemStack(Material.GREEN_CONCRETE);
             visitorsMeta.setLore(java.util.Arrays.asList(
-                ChatColor.GREEN + "ON",
-                ChatColor.GRAY + "Click to toggle access to visitors."
+                NamedTextColor.GREEN + "ON",
+                NamedTextColor.GRAY + "Click to toggle access to visitors."
                 ));
         } else {
             visitors = new ItemStack(Material.RED_CONCRETE);
             visitorsMeta.setLore(java.util.Arrays.asList(
-                ChatColor.RED + "OFF",
-                ChatColor.GRAY + "Click to toggle access to visitors."
+                NamedTextColor.RED + "OFF",
+                NamedTextColor.GRAY + "Click to toggle access to visitors."
                 ));
         }
         visitors.setItemMeta(visitorsMeta);
@@ -227,8 +227,8 @@ public class IslandCommand implements CommandExecutor, Listener {
 
         ItemStack delete = new ItemStack(Material.BARRIER);
         ItemMeta deleteMeta = delete.getItemMeta();
-        deleteMeta.setDisplayName(ChatColor.RED + "Delete island");
-        deleteMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to delete your island."));
+        deleteMeta.setDisplayName(NamedTextColor.RED + "Delete island");
+        deleteMeta.setLore(java.util.Collections.singletonList(NamedTextColor.GRAY + "Click to delete your island."));
         delete.setItemMeta(deleteMeta);
         islandGUI.setItem(15, delete);
 
@@ -249,19 +249,19 @@ public class IslandCommand implements CommandExecutor, Listener {
                     switch (event.getCurrentItem().getItemMeta().getDisplayName()) {
                         case "Island home":
                             // todo player.teleport(islandMap.get(player.getUniqueId()).add(0.5, 1, 0.5));
-                            player.sendMessage(ChatColor.AQUA + "Teleporting to your island...");
+                            player.sendMessage(NamedTextColor.AQUA + "Teleporting to your island...");
                             break;
 
                         case "Allow visitors":
                             // todo toggle allow visitors
-                            //player.sendMessage(ChatColor.AQUA + "Denied players to visit your island.");
+                            //player.sendMessage(NamedTextColor.AQUA + "Denied players to visit your island.");
                             // todo toggle allow visitors
-                            //player.sendMessage(ChatColor.AQUA + "Allowed players to visit your island.");
+                            //player.sendMessage(NamedTextColor.AQUA + "Allowed players to visit your island.");
                             break;
 
                         case "Delete island":
                             //todo delete island
-                            player.sendMessage(ChatColor.AQUA + "Deleting your island.");
+                            player.sendMessage(NamedTextColor.AQUA + "Deleting your island.");
                             break;
 
                         case "Members":
@@ -284,7 +284,7 @@ public class IslandCommand implements CommandExecutor, Listener {
                     switch (event.getCurrentItem().getItemMeta().getDisplayName()) {
                         case "§aCreate Island":
                             //todo create island
-                            player.sendMessage(ChatColor.GREEN + "Creating your island...");
+                            player.sendMessage(NamedTextColor.GREEN + "Creating your island...");
                             String islandUUID = DatabaseManager.getInstance().createIsland(
                                 player.getUniqueId().toString(), 
                                 player.getName() + "'s Island",
@@ -293,11 +293,11 @@ public class IslandCommand implements CommandExecutor, Listener {
                                 0
                             );
                             if (islandUUID != null) {
-                                player.sendMessage(ChatColor.GREEN + "Island created successfully!");
+                                player.sendMessage(NamedTextColor.GREEN + "Island created successfully!");
                                 //todo teleport to island
                             }
                             else {
-                                player.sendMessage(ChatColor.RED + "Failed to create island. You might already have one.");
+                                player.sendMessage(NamedTextColor.RED + "Failed to create island. You might already have one.");
                             }
                         break;
                     }
@@ -311,7 +311,7 @@ public class IslandCommand implements CommandExecutor, Listener {
 
         ItemStack players = new ItemStack(Material.PLAYER_HEAD);
         ItemMeta playersMeta = players.getItemMeta();
-        playersMeta.setDisplayName(ChatColor.YELLOW + "Player");
+        playersMeta.setDisplayName(NamedTextColor.YELLOW + "Player");
         players.setItemMeta(playersMeta);
 
         for (int i = 10; i < 17; i++) {
@@ -327,7 +327,7 @@ public class IslandCommand implements CommandExecutor, Listener {
         ItemStack create = new ItemStack(Material.GRASS_BLOCK);
         ItemMeta createMeta = create.getItemMeta();
         createMeta.setDisplayName("§aCreate Island");
-        createMeta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to create your island."));
+        createMeta.setLore(java.util.Collections.singletonList(NamedTextColor.GRAY + "Click to create your island."));
         create.setItemMeta(createMeta);
         createIslandGUI.setItem(13, create);
 
