@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import org.leafhold.skyBlock.commands.IslandCommand;
+import org.leafhold.skyBlock.utils.DatabaseManager;
 
 public final class SkyBlock extends JavaPlugin {
     private static SkyBlock instance;
@@ -36,6 +37,15 @@ public final class SkyBlock extends JavaPlugin {
         }
         instance = this;
         saveDefaultConfig();
+
+        DatabaseManager databaseManager = new DatabaseManager();
+
+        try {
+            databaseManager.connect();
+        } catch (Exception e) {
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
 
         IslandCommand islandCommand = new IslandCommand();
         getCommand("island").setExecutor(islandCommand);
