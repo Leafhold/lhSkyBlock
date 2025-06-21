@@ -453,10 +453,9 @@ public class IslandCommand implements CommandExecutor, Listener {
         }
 
         player.openInventory(deleteIslandGUI);
-
     }
 
-   public void confirmDeleteIslandGUI(Player player, UUID islandUUID) {
+   private void confirmDeleteIslandGUI(Player player, UUID islandUUID) {
         Inventory confirmDeleteGUI = Bukkit.createInventory(player, 27, Component.text("Confirm island deletion"));
 
         ItemStack confirm = new ItemStack(Material.RED_CONCRETE);
