@@ -59,7 +59,7 @@ public class IslandCommand implements CommandExecutor, Listener {
                     UUID islandUUID = UUID.fromString(islandObj[0].toString());
                     manageIslandGUI(player, islandUUID);
                 } else {
-                    islandSelectGUI(player);
+                    selectIslandGUI(player);
                 }
             } else {
                 final TextComponent message = Component.text("You do not have an island yet. Use ")
@@ -97,7 +97,7 @@ public class IslandCommand implements CommandExecutor, Listener {
 
             case "delete":
                 if (!userIslands.isEmpty()) {
-                    Inventory islandDeleteGUI = Bukkit.createInventory(player, 9, Component.text("Delete your island"));
+                    Inventory islandDeleteGUI = Bukkit.createInventory(player, 9, "Delete your island");
                     List<ItemStack> items = new ArrayList<>();
                     for (Object island : userIslands) {
                         Object[] islandArr = (Object[]) island;
@@ -107,7 +107,7 @@ public class IslandCommand implements CommandExecutor, Listener {
                         itemMeta.displayName(Component.text(islandName).color(NamedTextColor.GREEN));
                         itemMeta.lore(java.util.Collections.singletonList(Component.text("Click to delete this island.").color(NamedTextColor.GRAY)));
                         itemMeta.getPersistentDataContainer().set(
-                            new org.bukkit.NamespacedKey("skyblock", "uuid"),
+                            new org.bukkit.NamespacedKey("lhskyblock", "uuid"),
                             PersistentDataType.STRING,
                             islandArr[0].toString()
                         );
@@ -206,14 +206,15 @@ public class IslandCommand implements CommandExecutor, Listener {
     public void onInventoryClick(InventoryClickEvent event) throws SQLException {
         Player player = (Player) event.getWhoClicked();
 
-        switch (event.getView().title().toString()) {
+        String inventoryTitle = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+        switch (inventoryTitle) {
             case "Manage island":
                 event.setCancelled(true);
 
-                // Check if the player clicked your item
                 if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
                     
-                    switch (event.getCurrentItem().getItemMeta().displayName().toString()) {
+                    String itemDisplayName = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getCurrentItem().getItemMeta().displayName());
+                    switch (itemDisplayName) {
                         case "Island home":
                             // todo player.teleport(islandMap.get(player.getUniqueId()).add(0.5, 1, 0.5));
                             player.sendMessage(NamedTextColor.AQUA + "Teleporting to your island...");
@@ -231,19 +232,21 @@ public class IslandCommand implements CommandExecutor, Listener {
                     }
                 }
                 break;
+
             case "Manage island members":
                 event.setCancelled(true);
+                
                 if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
                     player.sendMessage("IT WORKS!");
                 }  
                 break;
-            case "Create your island":
-                event.setCancelled(true);
 
-                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
-                    player.sendMessage("You clicked: " + event.getCurrentItem().getItemMeta().displayName().toString());
-                    switch (event.getCurrentItem().getItemMeta().displayName().toString()) {
-                        case "Create Island":
+            case "Create your island":
+                event.setCancelled(true);                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
+                    String itemTag = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
+                        .get(new org.bukkit.NamespacedKey("lhskyblock", "itemRole"), PersistentDataType.STRING);
+                    switch (itemTag) {
+                        case "Create island":
                             //todo create island
                             player.sendMessage(NamedTextColor.GREEN + "Creating your island...");
                             String islandUUID = DatabaseManager.getInstance().createIsland(
@@ -260,23 +263,22 @@ public class IslandCommand implements CommandExecutor, Listener {
                             else {
                                 player.sendMessage(NamedTextColor.RED + "Failed to create island. You might already have one.");
                             }
-                        break;
+                            break;
                     }
                 }
                 break;
             
             case "Select island":
-                event.setCancelled(true);
-                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
+                event.setCancelled(true);                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
                     UUID islandUUID = UUID.fromString(event.getCurrentItem().getItemMeta().getPersistentDataContainer()
-                        .get(new org.bukkit.NamespacedKey("skyblock", "uuid"), PersistentDataType.STRING));
+                        .get(new org.bukkit.NamespacedKey("lhskyblock", "uuid"), PersistentDataType.STRING));
                     manageIslandGUI(player, islandUUID);
                 }
                 break;
         }
     }
 
-    private void islandSelectGUI(Player player) {
+    private void selectIslandGUI(Player player) {
         List<Object> userIslands = new ArrayList<>();
         try {
             userIslands = databaseManager.getIslandsByOwner(player.getUniqueId().toString());
@@ -285,7 +287,7 @@ public class IslandCommand implements CommandExecutor, Listener {
             e.printStackTrace();
             return;
         }
-        Inventory islandSelectGUI = Bukkit.createInventory(player, 27, Component.text("Select island"));
+        Inventory selectIslandGUI = Bukkit.createInventory(player, 27, "Select island");
 
         List<ItemStack> islandItems = new ArrayList<>();
 
@@ -299,9 +301,8 @@ public class IslandCommand implements CommandExecutor, Listener {
             islandMeta.lore(java.util.Arrays.asList(
                 Component.text("Click to teleport to your island.").color(NamedTextColor.GRAY),
                 Component.text("Right-click to manage your island.").color(NamedTextColor.GRAY)
-            ));
-            islandMeta.getPersistentDataContainer().set(
-                new org.bukkit.NamespacedKey("skyblock", "uuid"),
+            ));            islandMeta.getPersistentDataContainer().set(
+                new org.bukkit.NamespacedKey("lhskyblock", "uuid"),
                 PersistentDataType.STRING,
                 islandUUID.toString()
             );
@@ -310,10 +311,10 @@ public class IslandCommand implements CommandExecutor, Listener {
         }
 
         for (int i = 0; i < userIslands.size(); i++) {
-            islandSelectGUI.setItem(i, islandItems.get(i));
+            selectIslandGUI.setItem(i, islandItems.get(i));
         }
 
-        player.openInventory(islandSelectGUI);   
+        player.openInventory(selectIslandGUI);   
     }
 
     private void manageIslandGUI(Player player, UUID islandUUID) {
@@ -328,7 +329,7 @@ public class IslandCommand implements CommandExecutor, Listener {
         Object[] islandObj = (Object[]) island;
         boolean allowVisitors = Boolean.parseBoolean(islandObj[3].toString());
 
-        Inventory islandGUI = Bukkit.createInventory(player, 27, Component.text("Manage island"));
+        Inventory islandGUI = Bukkit.createInventory(player, 27, "Manage island");
 
         ItemStack home = new ItemStack(Material.GRASS_BLOCK);
         ItemMeta homeMeta = home.getItemMeta();
@@ -360,6 +361,11 @@ public class IslandCommand implements CommandExecutor, Listener {
                 Component.text("Click to toggle access to visitors.").color(NamedTextColor.GRAY)
                 ));
         }
+        visitorsMeta.getPersistentDataContainer().set(
+            new org.bukkit.NamespacedKey("lhskyblock", "itemRole"),
+            PersistentDataType.STRING,
+            "Toggle visitors"
+        );
         visitors.setItemMeta(visitorsMeta);
         islandGUI.setItem(4, visitors);
 
@@ -367,6 +373,11 @@ public class IslandCommand implements CommandExecutor, Listener {
         ItemMeta deleteMeta = delete.getItemMeta();
         deleteMeta.displayName(Component.text("Delete island").color(NamedTextColor.RED));
         deleteMeta.lore(java.util.Collections.singletonList(Component.text("Click to delete your island.").color(NamedTextColor.GRAY)));
+        deleteMeta.getPersistentDataContainer().set(
+            new org.bukkit.NamespacedKey("lhskyblock", "itemRole"),
+            PersistentDataType.STRING,
+            "Delete island"
+        );
         delete.setItemMeta(deleteMeta);
         islandGUI.setItem(15, delete);
 
@@ -374,7 +385,7 @@ public class IslandCommand implements CommandExecutor, Listener {
     }  
 
     private void membersGUI(Player player) {
-        Inventory membersGUI = Bukkit.createInventory(player, 27, Component.text("Manage island members"));
+        Inventory membersGUI = Bukkit.createInventory(player, 27, "Manage island members");
 
         ItemStack players = new ItemStack(Material.PLAYER_HEAD);
         ItemMeta playersMeta = players.getItemMeta();
@@ -389,12 +400,17 @@ public class IslandCommand implements CommandExecutor, Listener {
     }
 
     private void createIslandGUI(Player player) {
-        Inventory createIslandGUI = Bukkit.createInventory(player, 27, Component.text("Create your island"));
+        Inventory createIslandGUI = Bukkit.createInventory(player, 27, "Create your island");
 
         ItemStack create = new ItemStack(Material.GRASS_BLOCK);
         ItemMeta createMeta = create.getItemMeta();
         createMeta.displayName(Component.text("Create Island").color(NamedTextColor.GREEN));
         createMeta.lore(java.util.Collections.singletonList(Component.text("Click to create your island.").color(NamedTextColor.GRAY)));
+        createMeta.getPersistentDataContainer().set(
+            new org.bukkit.NamespacedKey("lhSkyBlock", "itemRole"),
+            PersistentDataType.STRING,
+            "Create island"
+        );
         create.setItemMeta(createMeta);
         createIslandGUI.setItem(13, create);
 
