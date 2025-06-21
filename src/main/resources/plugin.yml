@@ -1,6 +1,6 @@
 name: lhSkyBlock
 version: '1.0-SNAPSHOT'
-main: org.leafhold.skyBlock.SkyBlock
+main: org.leafhold.lhskyBlock.lhSkyBlock
 api-version: '1.21.5'
 load: STARTUP
 depend: [Vault]
