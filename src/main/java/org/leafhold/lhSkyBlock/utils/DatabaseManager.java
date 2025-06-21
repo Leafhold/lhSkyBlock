@@ -1,6 +1,7 @@
 package org.leafhold.lhSkyBlock.utils;
 
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 
 import org.leafhold.lhSkyBlock.lhSkyBlock;
 
@@ -159,6 +160,20 @@ public class DatabaseManager {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, islandUUID);
             preparedStatement.executeUpdate();
+        }
+    }
+
+    public Boolean deleteIsland(Player player, String islandUUID) throws SQLException {
+        String sql = "DELETE FROM islands WHERE uuid = ? AND owner = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, islandUUID);
+            preparedStatement.setString(2, player.getUniqueId().toString());
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected == 0) {
+                return false;
+            } else {
+                return true;
+            }
         }
     }
 }
