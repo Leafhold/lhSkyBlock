@@ -1,4 +1,4 @@
-name: SkyBlock
+name: lhSkyBlock
 version: '1.0-SNAPSHOT'
 main: org.leafhold.skyBlock.SkyBlock
 api-version: '1.21.5'
@@ -10,5 +10,5 @@ commands:
     description: Manage your island
     usage: "/island <create|delete|home|help>"
     aliases: [is]
-    permission: skyblock.island
+    permission: lhskyblock.island
     permission-message: "You do not have permission to use this command."
