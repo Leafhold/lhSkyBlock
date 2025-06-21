@@ -56,7 +56,7 @@ public class IslandCommand implements CommandExecutor, Listener {
         }
         if (args.length == 0) {
             if (!userIslands.isEmpty()) {
-                islandsGUI(player);
+                manageIslandGUI(player, uuid);
             } else {
                 final TextComponent message = Component.text("You do not have an island yet. Use ")
                     .color(NamedTextColor.RED)
@@ -129,7 +129,7 @@ public class IslandCommand implements CommandExecutor, Listener {
 
             case "home":
                 if (!userIslands.isEmpty()) {
-                    teleportToIsland(player);
+                    //todo teleportToIsland(player);
                 } else {
                     final TextComponent message = Component.text("You do not have an island yet. Use ")
                         .color(NamedTextColor.RED)
@@ -157,10 +157,6 @@ public class IslandCommand implements CommandExecutor, Listener {
                 player.sendMessage(message);
         }
         return true;
-    }
-
-    private void teleportToIsland(Player player) {
-        //todo fetch island location from database and teleport player
     }
 
     private void islandHelp(Player player) {
@@ -195,89 +191,6 @@ public class IslandCommand implements CommandExecutor, Listener {
                 .append(Component.text(" - Show this help message.")
             ))));
         player.sendMessage(message);
-    }
-
-    private void islandsGUI(Player player) {
-
-        //? Check if player has multiple islands
-        //? if true, show a list of islands to select from
-        //? else, show the manage island GUI
-
-        List<Object> userIslands;
-        try {
-            userIslands = databaseManager.getIslandsByOwner(player.getUniqueId().toString());
-        } catch (SQLException e) {
-            player.sendMessage(NamedTextColor.RED + "An error occurred while fetching your islands. Please try again later.");
-            e.printStackTrace();
-            return;
-        }
-
-        if (userIslands.size() > 1) islandSelectGUI(player);
-        else {
-            Object[] islandObj = (Object[]) userIslands.get(0);
-            manageIslandGUI(player, UUID.fromString(islandObj[0].toString()));
-        }
-    }
-
-    private void islandSelectGUI(Player player) {
-
-    }
-
-    private void manageIslandGUI(Player player, UUID islandUUID) {
-        Object island = null;
-        try {
-            island = databaseManager.getIslandByUUID(islandUUID);
-        } catch (SQLException e) {
-            player.sendMessage(NamedTextColor.RED + "An error occurred while fetching your islands. Please try again later.");
-            e.printStackTrace();
-            return;
-        }
-        Object[] islandObj = (Object[]) island;
-        boolean allowVisitors = Boolean.parseBoolean(islandObj[3].toString());
-
-        Inventory islandGUI = Bukkit.createInventory(player, 27, Component.text("Manage island"));
-
-        ItemStack home = new ItemStack(Material.GRASS_BLOCK);
-        ItemMeta homeMeta = home.getItemMeta();
-        homeMeta.displayName(Component.text("Island home").color(NamedTextColor.AQUA));
-        homeMeta.lore(java.util.Collections.singletonList(Component.text("Click to teleport to your island.").color(NamedTextColor.GRAY)));
-        home.setItemMeta(homeMeta);
-        islandGUI.setItem(11, home);
-
-        ItemStack members = new ItemStack(Material.PLAYER_HEAD);
-        ItemMeta membersMeta = members.getItemMeta();
-        membersMeta.displayName(Component.text("Members").color(NamedTextColor.WHITE));
-        membersMeta.lore(java.util.Collections.singletonList(Component.text("Click to view your island members.").color(NamedTextColor.GRAY)));
-        members.setItemMeta(membersMeta);
-        islandGUI.setItem(22, members);
-
-        ItemStack visitors = new ItemStack(Material.RED_CONCRETE);
-        ItemMeta visitorsMeta = visitors.getItemMeta();
-        visitorsMeta.displayName(Component.text("Allow visitors").color(NamedTextColor.WHITE));
-        if (allowVisitors) {
-            visitors = new ItemStack(Material.GREEN_CONCRETE);
-            visitorsMeta.lore(java.util.Arrays.asList(
-                Component.text("On").color(NamedTextColor.GREEN),
-                Component.text("Click to toggle access to visitors.").color(NamedTextColor.GRAY)
-                ));
-        } else {
-            visitors = new ItemStack(Material.RED_CONCRETE);
-            visitorsMeta.lore(java.util.Arrays.asList(
-                Component.text("Off").color(NamedTextColor.RED),
-                Component.text("Click to toggle access to visitors.").color(NamedTextColor.GRAY)
-                ));
-        }
-        visitors.setItemMeta(visitorsMeta);
-        islandGUI.setItem(4, visitors);
-
-        ItemStack delete = new ItemStack(Material.BARRIER);
-        ItemMeta deleteMeta = delete.getItemMeta();
-        deleteMeta.displayName(Component.text("Delete island").color(NamedTextColor.RED));
-        deleteMeta.lore(java.util.Collections.singletonList(Component.text("Click to delete your island.").color(NamedTextColor.GRAY)));
-        delete.setItemMeta(deleteMeta);
-        islandGUI.setItem(15, delete);
-
-        player.openInventory(islandGUI);
     }
     
     @EventHandler
@@ -343,7 +256,68 @@ public class IslandCommand implements CommandExecutor, Listener {
                 break;
         }
     }
-    
+
+    private void manageIslandGUI(Player player, UUID islandUUID) {
+        Object island = null;
+        try {
+            island = databaseManager.getIslandByUUID(islandUUID);
+        } catch (SQLException e) {
+            player.sendMessage(NamedTextColor.RED + "An error occurred while fetching your islands. Please try again later.");
+            e.printStackTrace();
+            return;
+        }
+        Object[] islandObj = (Object[]) island;
+        boolean allowVisitors = Boolean.parseBoolean(islandObj[3].toString());
+
+        Inventory islandGUI = Bukkit.createInventory(player, 27, Component.text("Manage island"));
+
+        ItemStack home = new ItemStack(Material.GRASS_BLOCK);
+        ItemMeta homeMeta = home.getItemMeta();
+        homeMeta.displayName(Component.text("Island home").color(NamedTextColor.AQUA));
+        homeMeta.lore(java.util.Collections.singletonList(Component.text("Click to teleport to your island.").color(NamedTextColor.GRAY)));
+        home.setItemMeta(homeMeta);
+        islandGUI.setItem(11, home);
+
+        ItemStack members = new ItemStack(Material.PLAYER_HEAD);
+        ItemMeta membersMeta = members.getItemMeta();
+        membersMeta.displayName(Component.text("Members").color(NamedTextColor.WHITE));
+        membersMeta.lore(java.util.Collections.singletonList(Component.text("Click to view your island members.").color(NamedTextColor.GRAY)));
+        members.setItemMeta(membersMeta);
+        islandGUI.setItem(22, members);
+
+        ItemStack visitors = new ItemStack(Material.RED_CONCRETE);
+        ItemMeta visitorsMeta = visitors.getItemMeta();
+        visitorsMeta.displayName(Component.text("Allow visitors").color(NamedTextColor.WHITE));
+        if (allowVisitors) {
+            visitors = new ItemStack(Material.GREEN_CONCRETE);
+            visitorsMeta.lore(java.util.Arrays.asList(
+                Component.text("On").color(NamedTextColor.GREEN),
+                Component.text("Click to toggle access to visitors.").color(NamedTextColor.GRAY)
+                ));
+        } else {
+            visitors = new ItemStack(Material.RED_CONCRETE);
+            visitorsMeta.lore(java.util.Arrays.asList(
+                Component.text("Off").color(NamedTextColor.RED),
+                Component.text("Click to toggle access to visitors.").color(NamedTextColor.GRAY)
+                ));
+        }
+        visitors.setItemMeta(visitorsMeta);
+        islandGUI.setItem(4, visitors);
+
+        ItemStack delete = new ItemStack(Material.BARRIER);
+        ItemMeta deleteMeta = delete.getItemMeta();
+        deleteMeta.displayName(Component.text("Delete island").color(NamedTextColor.RED));
+        deleteMeta.lore(java.util.Collections.singletonList(Component.text("Click to delete your island.").color(NamedTextColor.GRAY)));
+        delete.setItemMeta(deleteMeta);
+        islandGUI.setItem(15, delete);
+
+        player.openInventory(islandGUI);
+    }
+
+    private void islandSelectGUI(Player player) {
+
+    }    
+
     private void membersGUI(Player player) {
         Inventory membersGUI = Bukkit.createInventory(player, 27, Component.text("Manage island members"));
 
@@ -370,7 +344,5 @@ public class IslandCommand implements CommandExecutor, Listener {
         createIslandGUI.setItem(13, create);
 
         player.openInventory(createIslandGUI);
-
-
     }
 }
