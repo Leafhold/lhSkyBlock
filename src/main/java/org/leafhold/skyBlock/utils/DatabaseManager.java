@@ -136,7 +136,8 @@ public class DatabaseManager {
                 boolean isPublic = resultSet.getBoolean("public");
                 return new Object[] { uuid, owner, name, isPublic };
             }
-            return null;
+        }
+        return null;
                 
     }
 
