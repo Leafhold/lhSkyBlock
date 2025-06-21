@@ -125,7 +125,19 @@ public class DatabaseManager {
     }
 
     public Object getIslandByUUID(UUID islandUUID) throws SQLException {
-        String sql = "SELECT uuid, owner, name, world, public, x, z FROM islands WHERE uuid = ?";
+        String sql = "SELECT uuid, owner, name, public FROM islands WHERE uuid = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, islandUUID.toString());
+            var resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                String uuid = resultSet.getString("uuid");
+                String owner = resultSet.getString("owner");
+                String name = resultSet.getString("name");
+                boolean isPublic = resultSet.getBoolean("public");
+                return new Object[] { uuid, owner, name, isPublic };
+            }
+            return null;
+                
     }
 
     public boolean visitorsAllowed(String islandUUID) throws SQLException {
