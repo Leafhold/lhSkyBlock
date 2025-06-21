@@ -118,4 +118,16 @@ public class DatabaseManager {
             return islands;
         }
     }
+
+    public boolean visitorsAllowed(String islandUUID) throws SQLException {
+        String sql = "SELECT public FROM islands WHERE uuid = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, islandUUID);
+            var resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getBoolean("public");
+            }
+            return false;
+        }
+    }
 }
