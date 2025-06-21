@@ -37,12 +37,7 @@ public class IslandCommand implements CommandExecutor, Listener {
             return true;
         }
         if (databaseManager == null) {
-            try {
-                databaseManager = DatabaseManager.getInstance();
-                databaseManager.connect();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            databaseManager = DatabaseManager.getInstance();
         }
         Player player = (Player) sender;
         UUID uuid = player.getUniqueId();
