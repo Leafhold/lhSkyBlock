@@ -302,7 +302,7 @@ public class IslandCommand implements CommandExecutor, Listener {
             e.printStackTrace();
             return;
         }
-        Inventory selectIslandGUI = Bukkit.createInventory(player, 27, "Select island");
+        Inventory selectIslandGUI = Bukkit.createInventory(player, 27, Component.text("Select island"));
 
         List<ItemStack> islandItems = new ArrayList<>();
 
@@ -344,7 +344,7 @@ public class IslandCommand implements CommandExecutor, Listener {
         Object[] islandObj = (Object[]) island;
         boolean allowVisitors = Boolean.parseBoolean(islandObj[3].toString());
 
-        Inventory islandGUI = Bukkit.createInventory(player, 27, "Manage island");
+        Inventory islandGUI = Bukkit.createInventory(player, 27, Component.text("Manage island"));
 
         ItemStack home = new ItemStack(Material.GRASS_BLOCK);
         ItemMeta homeMeta = home.getItemMeta();
@@ -387,9 +387,9 @@ public class IslandCommand implements CommandExecutor, Listener {
     }  
 
     private void membersGUI(Player player) {
-        Inventory membersGUI = Bukkit.createInventory(player, 27, "Manage island members");
+        Inventory membersGUI = Bukkit.createInventory(player, 27, Component.text("Manage island members"));
 
-        //todo fetch siland members
+        //todo fetch island members
 
         ItemStack players = new ItemStack(Material.PLAYER_HEAD);
         ItemMeta playersMeta = players.getItemMeta();
@@ -404,7 +404,7 @@ public class IslandCommand implements CommandExecutor, Listener {
     }
 
     private void createIslandGUI(Player player) {
-        Inventory createIslandGUI = Bukkit.createInventory(player, 27, "Create an island");
+        Inventory createIslandGUI = Bukkit.createInventory(player, 27, Component.text("Create an island"));
 
         ItemStack create = new ItemStack(Material.GRASS_BLOCK);
         ItemMeta createMeta = create.getItemMeta();
@@ -422,7 +422,7 @@ public class IslandCommand implements CommandExecutor, Listener {
     }
 
     private void deleteIslandGUI(Player player, UUID islandUUID) {
-        Inventory deleteIslandGUI = Bukkit.createInventory(player, 27, "Delete an island");
+        Inventory deleteIslandGUI = Bukkit.createInventory(player, 27, Component.text("Delete an island"));
 
         List<Object> userIslands = new ArrayList<>();
         try {
@@ -457,7 +457,7 @@ public class IslandCommand implements CommandExecutor, Listener {
     }
 
    public void confirmDeleteIslandGUI(Player player, UUID islandUUID) {
-        Inventory confirmDeleteGUI = Bukkit.createInventory(player, 27, "Confirm island deletion");
+        Inventory confirmDeleteGUI = Bukkit.createInventory(player, 27, Component.text("Confirm island deletion"));
 
         ItemStack confirm = new ItemStack(Material.RED_CONCRETE);
         ItemMeta confirmMeta = confirm.getItemMeta();
