@@ -1,13 +1,13 @@
-    package org.leafhold.skyBlock;
+    package org.leafhold.lhSkyBlock;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import org.leafhold.skyBlock.commands.IslandCommand;
-import org.leafhold.skyBlock.utils.DatabaseManager;
+import org.leafhold.lhSkyBlock.commands.IslandCommand;
+import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 
-public final class SkyBlock extends JavaPlugin {
-    private static SkyBlock instance;
+public final class lhSkyBlock extends JavaPlugin {
+    private static lhSkyBlock instance;
     private static boolean isSpigot;
     private static boolean isPaper;
 
@@ -58,7 +58,7 @@ public final class SkyBlock extends JavaPlugin {
         DatabaseManager.getInstance().disconnect();
     }
 
-    public static SkyBlock getInstance() {
+    public static lhSkyBlock getInstance() {
         return instance;
     }
 }

@@ -2,7 +2,7 @@ package org.leafhold.lhSkyBlock.utils;
 
 import org.bukkit.configuration.file.FileConfiguration;
 
-import org.leafhold.lhS`1kyBlock.lhSkyBlock;
+import org.leafhold.lhSkyBlock.lhSkyBlock;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

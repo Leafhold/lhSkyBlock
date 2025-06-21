@@ -1,4 +1,4 @@
-package org.leafhold.skyBlock.commands;
+package org.leafhold.lhSkyBlock.commands;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -9,7 +9,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.leafhold.skyBlock.utils.DatabaseManager;
+
+import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -240,6 +241,7 @@ public class IslandCommand implements CommandExecutor, Listener {
                 event.setCancelled(true);
 
                 if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
+                    player.sendMessage("You clicked: " + event.getCurrentItem().getItemMeta().displayName().toString());
                     switch (event.getCurrentItem().getItemMeta().displayName().toString()) {
                         case "Create Island":
                             //todo create island
@@ -264,6 +266,7 @@ public class IslandCommand implements CommandExecutor, Listener {
                 break;
             
             case "Select island":
+                event.setCancelled(true);
                 if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
                     UUID islandUUID = UUID.fromString(event.getCurrentItem().getItemMeta().getPersistentDataContainer()
                         .get(new org.bukkit.NamespacedKey("skyblock", "uuid"), PersistentDataType.STRING));
