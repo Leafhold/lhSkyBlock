@@ -11,6 +11,8 @@ public final class SkyBlock extends JavaPlugin {
     private static boolean isSpigot;
     private static boolean isPaper;
 
+    //todo add paper specific code
+
     @Override
     public void onLoad() {
         try {

@@ -8,6 +8,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.util.List;
+import java.util.UUID;
 import java.util.ArrayList;
 
 public class DatabaseManager {
@@ -106,17 +107,25 @@ public class DatabaseManager {
         }
     }
 
-    public List<String> getIslandsByOwner(String ownerUUID) throws SQLException {
-        String sql = "SELECT uuid FROM islands WHERE owner = ?";
+    public List<Object> getIslandsByOwner(String ownerUUID) throws SQLException {
+        String sql = "SELECT uuid, owner, name, public FROM islands WHERE owner = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, ownerUUID);
             var resultSet = preparedStatement.executeQuery();
-            List<String> islands = new ArrayList<>();
+            List<Object> islands = new ArrayList<>();
             while (resultSet.next()) {
-                islands.add(resultSet.getString("uuid"));
+                String islandUUID = resultSet.getString("uuid");
+                String owner = resultSet.getString("owner");
+                String name = resultSet.getString("name");
+                boolean isPublic = resultSet.getBoolean("public");
+                islands.add(new Object[] { islandUUID, owner, name, isPublic });
             }
             return islands;
         }
+    }
+
+    public Object getIslandByUUID(UUID islandUUID) throws SQLException {
+        String sql = "SELECT uuid, owner, name, world, public, x, z FROM islands WHERE uuid = ?";
     }
 
     public boolean visitorsAllowed(String islandUUID) throws SQLException {
@@ -128,6 +137,14 @@ public class DatabaseManager {
                 return resultSet.getBoolean("public");
             }
             return false;
+        }
+    }
+
+    public void toggleVisitors(String islandUUID) throws SQLException {
+        String sql = "UPDATE islands SET public = NOT public WHERE uuid = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, islandUUID);
+            preparedStatement.executeUpdate();
         }
     }
 }

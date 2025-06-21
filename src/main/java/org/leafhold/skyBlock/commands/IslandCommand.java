@@ -46,7 +46,7 @@ public class IslandCommand implements CommandExecutor, Listener {
         }
         Player player = (Player) sender;
         UUID uuid = player.getUniqueId();
-        List<String> userIslands = new ArrayList<>();
+        List<Object> userIslands = new ArrayList<>();
         try {
             userIslands = databaseManager.getIslandsByOwner(uuid.toString());
         } catch (SQLException e) {
@@ -93,7 +93,22 @@ public class IslandCommand implements CommandExecutor, Listener {
 
             case "delete":
                 if (!userIslands.isEmpty()) {
-                    //todo delete island
+                    Inventory islandDeleteGUI = Bukkit.createInventory(player, 9, Component.text("Delete your island"));
+                    List<ItemStack> items = new ArrayList<>();
+                    for (Object island : userIslands) {
+                        Object[] islandArr = (Object[]) island;
+                        String islandName = islandArr[2].toString();
+                        ItemStack item = new ItemStack(Material.GRASS_BLOCK);
+                        ItemMeta itemMeta = item.getItemMeta();
+                        itemMeta.displayName(Component.text(islandName).color(NamedTextColor.GREEN));
+                        itemMeta.lore(java.util.Collections.singletonList(Component.text("Click to delete this island.").color(NamedTextColor.GRAY)));
+                        item.setItemMeta(itemMeta);
+                        items.add(item);
+                    }
+                    for (int i = 0; i < items.size(); i++) {
+                        islandDeleteGUI.setItem(i, items.get(i));
+                    }
+                    player.openInventory(islandDeleteGUI);
                 } else {
                     final TextComponent message = Component.text("You do not have an island to delete. Use ")
                         .color(NamedTextColor.RED)
@@ -188,7 +203,7 @@ public class IslandCommand implements CommandExecutor, Listener {
         //? if true, show a list of islands to select from
         //? else, show the manage island GUI
 
-        List<String> userIslands;
+        List<Object> userIslands;
         try {
             userIslands = databaseManager.getIslandsByOwner(player.getUniqueId().toString());
         } catch (SQLException e) {
@@ -198,17 +213,28 @@ public class IslandCommand implements CommandExecutor, Listener {
         }
 
         if (userIslands.size() > 1) islandSelectGUI(player);
-        else                        manageIslandGUI(player, userIslands.get(0));
+        else {
+            Object[] islandObj = (Object[]) userIslands.get(0);
+            manageIslandGUI(player, UUID.fromString(islandObj[0].toString()));
+        }
     }
 
     private void islandSelectGUI(Player player) {
 
     }
 
-    private void manageIslandGUI(Player player, String islandUUID) {
-                //todo fetch allow_visitors
-        boolean allowVisitors = false;
-        
+    private void manageIslandGUI(Player player, UUID islandUUID) {
+        Object island = null;
+        try {
+            island = databaseManager.getIslandByUUID(islandUUID);
+        } catch (SQLException e) {
+            player.sendMessage(NamedTextColor.RED + "An error occurred while fetching your islands. Please try again later.");
+            e.printStackTrace();
+            return;
+        }
+        Object[] islandObj = (Object[]) island;
+        boolean allowVisitors = Boolean.parseBoolean(islandObj[3].toString());
+
         Inventory islandGUI = Bukkit.createInventory(player, 27, Component.text("Manage island"));
 
         ItemStack home = new ItemStack(Material.GRASS_BLOCK);
@@ -272,19 +298,10 @@ public class IslandCommand implements CommandExecutor, Listener {
                             break;
 
                         case "Allow visitors":
-                            // todo toggle allow visitors
-                            //player.sendMessage(NamedTextColor.AQUA + "Denied players to visit your island.");
-                            // todo toggle allow visitors
-                            //player.sendMessage(NamedTextColor.AQUA + "Allowed players to visit your island.");
-                            break;
-
-                        case "Delete island":
-                            //todo delete island
-                            player.sendMessage(NamedTextColor.AQUA + "Deleting your island.");
+                            // todo toggle access to visitors
                             break;
 
                         case "Members":
-                            //todo members GUI
                             membersGUI(player);
                             break;
                         default:
