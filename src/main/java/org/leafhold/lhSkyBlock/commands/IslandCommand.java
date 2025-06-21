@@ -242,9 +242,8 @@ public class IslandCommand implements CommandExecutor, Listener {
                 break;
 
             case "Create your island":
-                event.setCancelled(true);                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
-                    String itemTag = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
-                        .get(new org.bukkit.NamespacedKey("lhskyblock", "itemRole"), PersistentDataType.STRING);
+                event.setCancelled(true);                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {                    String itemTag = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
+                        .get(new org.bukkit.NamespacedKey("lhskyblock", "item_role"), PersistentDataType.STRING);
                     switch (itemTag) {
                         case "Create island":
                             //todo create island
@@ -360,9 +359,8 @@ public class IslandCommand implements CommandExecutor, Listener {
                 Component.text("Off").color(NamedTextColor.RED),
                 Component.text("Click to toggle access to visitors.").color(NamedTextColor.GRAY)
                 ));
-        }
-        visitorsMeta.getPersistentDataContainer().set(
-            new org.bukkit.NamespacedKey("lhskyblock", "itemRole"),
+        }        visitorsMeta.getPersistentDataContainer().set(
+            new org.bukkit.NamespacedKey("lhskyblock", "item_role"),
             PersistentDataType.STRING,
             "Toggle visitors"
         );
@@ -372,9 +370,8 @@ public class IslandCommand implements CommandExecutor, Listener {
         ItemStack delete = new ItemStack(Material.BARRIER);
         ItemMeta deleteMeta = delete.getItemMeta();
         deleteMeta.displayName(Component.text("Delete island").color(NamedTextColor.RED));
-        deleteMeta.lore(java.util.Collections.singletonList(Component.text("Click to delete your island.").color(NamedTextColor.GRAY)));
-        deleteMeta.getPersistentDataContainer().set(
-            new org.bukkit.NamespacedKey("lhskyblock", "itemRole"),
+        deleteMeta.lore(java.util.Collections.singletonList(Component.text("Click to delete your island.").color(NamedTextColor.GRAY)));        deleteMeta.getPersistentDataContainer().set(
+            new org.bukkit.NamespacedKey("lhskyblock", "item_role"),
             PersistentDataType.STRING,
             "Delete island"
         );
@@ -405,9 +402,8 @@ public class IslandCommand implements CommandExecutor, Listener {
         ItemStack create = new ItemStack(Material.GRASS_BLOCK);
         ItemMeta createMeta = create.getItemMeta();
         createMeta.displayName(Component.text("Create Island").color(NamedTextColor.GREEN));
-        createMeta.lore(java.util.Collections.singletonList(Component.text("Click to create your island.").color(NamedTextColor.GRAY)));
-        createMeta.getPersistentDataContainer().set(
-            new org.bukkit.NamespacedKey("lhSkyBlock", "itemRole"),
+        createMeta.lore(java.util.Collections.singletonList(Component.text("Click to create your island.").color(NamedTextColor.GRAY)));        createMeta.getPersistentDataContainer().set(
+            new org.bukkit.NamespacedKey("lhskyblock", "item_role"),
             PersistentDataType.STRING,
             "Create island"
         );
