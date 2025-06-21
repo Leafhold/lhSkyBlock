@@ -4,3 +4,6 @@ db:
   database: skyblock
   user: skyblock
   password: skyblock
+
+islands:
+  spacing: 1000 # Spacing between islands in blocks
