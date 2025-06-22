@@ -143,8 +143,9 @@ public class IslandCommand implements CommandExecutor, Listener {
                     )
                     .append(Component.text(" instead.").color(NamedTextColor.RED));
                 player.sendMessage(message);
+                return false;
         }
-        return true;
+        return false;
     }
 
     private void islandHelp(Player player) {
