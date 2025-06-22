@@ -12,3 +12,15 @@ commands:
     aliases: [is]
     permission: lhskyblock.island
     permission-message: "You do not have permission to use this command."
+  shop:
+    description: Manage the shops
+    usage: "/shop [create|delete|edit|list|info]"
+    permission: lhskyblock.shop
+    permission-message: "You do not have permission to use this command."
+permissions:
+  lhskyblock.island:
+    description: Allows players to manage their islands
+    default: true
+  lhskyblock.shop:
+    description: Allows players to manage shops
+    default: false
