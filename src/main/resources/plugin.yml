@@ -8,7 +8,7 @@ loadbefore: [Vault]
 commands:
   island:
     description: Manage your island
-    usage: "/island <create|delete|home|help>"
+    usage: "/island [create|delete|home|help]"
     aliases: [is]
     permission: lhskyblock.island
     permission-message: "You do not have permission to use this command."
