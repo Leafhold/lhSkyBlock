@@ -46,7 +46,7 @@ public class IslandCommand implements CommandExecutor, Listener {
         try {
             userIslands = databaseManager.getIslandsByOwner(uuid.toString());
         } catch (SQLException e) {
-            player.sendMessage(NamedTextColor.RED + "An error occurred while fetching your islands. Please try again later.");
+            player.sendMessage(Component.text("An error occurred while fetching your islands. Please try again later.").color(NamedTextColor.RED));
             e.printStackTrace();
             return true;
         }
