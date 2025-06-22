@@ -1,5 +1,7 @@
 package org.leafhold.lhSkyBlock.commands;
 
+import org.leafhold.lhSkyBlock.utils.DatabaseManager;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -9,18 +11,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-
-import org.leafhold.lhSkyBlock.utils.DatabaseManager;
+import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.Listener;
+import org.bukkit.event.EventHandler;
 
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-
-import org.bukkit.Material;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.Listener;
-import org.bukkit.event.EventHandler;
 
 import java.sql.SQLException;
 import java.util.UUID;

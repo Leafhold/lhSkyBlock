@@ -58,6 +58,10 @@ public final class lhSkyBlock extends JavaPlugin {
         DatabaseManager.getInstance().disconnect();
     }
 
+    public static boolean isPaper() {
+        return isPaper;
+    }
+
     public static lhSkyBlock getInstance() {
         return instance;
     }
