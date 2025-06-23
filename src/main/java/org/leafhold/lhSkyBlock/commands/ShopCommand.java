@@ -48,7 +48,7 @@ public class ShopCommand implements CommandExecutor, Listener {
 
         File configFile = new File(plugin.getDataFolder(), "shops.yml");
         if (!configFile.exists()) {
-            plugin.saveResource(plugin.getDataFolder() + "/shops.yml", false);
+            plugin.saveResource("shops.yml", false);
         }
         this.config = YamlConfiguration.loadConfiguration(configFile);
         this.npcRegistry = CitizensAPI.getNPCRegistry();
@@ -64,30 +64,43 @@ public class ShopCommand implements CommandExecutor, Listener {
         UUID uuid = player.getUniqueId();
 
         if (args.length == 0) {
-            //todo error message
+            return true;
         }
 
         switch (args[0].toLowerCase()) {
             case "create":
                 if (args.length < 2) {
+                    player.sendMessage(Component.text("Please specify an NPC ID.").color(NamedTextColor.RED));
+                    return true;
+                }
+                if (args.length < 3) {
                     player.sendMessage(Component.text("Please specify a shop name.").color(NamedTextColor.RED));
                     return true;
                 }
-                createShop(player, args[1]);
+                try {
+                    Integer npcId = Integer.parseInt(args[1]);
+                    String shopName = args[2];
+                    return createShop(player, npcId, shopName);
+                } catch (NumberFormatException e) {
+                    player.sendMessage(Component.text("Invalid NPC ID. Please provide a valid number.").color(NamedTextColor.RED));
+                    return true;
+                }
         }
 
         return false;
     }
 
-    private boolean createShop(Player player, String shopName) {
+    private boolean createShop(Player player, Integer npcId, String shopName) {
         if (config.contains("shops." + shopName)) {
             player.sendMessage(Component.text("A shop with this name already exists.").color(NamedTextColor.RED));
-            return false;
+            return true;
         }
 
-        NPC shopNPC = npcRegistry.createNPC(EntityType.VILLAGER, shopName);
-        shopNPC.spawn(player.getLocation());
-        shopNPC.setProtected(true);
+        NPC shopNPC = npcRegistry.getById(npcId);
+        if (shopNPC == null) {
+            player.sendMessage(Component.text("NPC with ID " + npcId + " does not exist.").color(NamedTextColor.RED));
+            return true;
+        }
 
         config.set("shops." + shopName + ".npc", shopNPC.getId());
         try {
@@ -95,7 +108,7 @@ public class ShopCommand implements CommandExecutor, Listener {
         } catch (Exception e) {
             player.sendMessage(Component.text("Failed to save shop configuration.").color(NamedTextColor.RED));
             e.printStackTrace();
-            return false;
+            return true;
         }
 
         return true;
@@ -106,6 +119,11 @@ public class ShopCommand implements CommandExecutor, Listener {
             player.sendMessage(Component.text("This shop does not exist.").color(NamedTextColor.RED));
             return;
             }
+        if (!config.contains("shops." + shopName + ".items")) {
+            player.sendMessage(Component.text("This shop has no items configured.").color(NamedTextColor.RED));
+            return;
+        }
+
         Inventory shopInventory = Bukkit.createInventory(player, 54, Component.text(shopName));
         for (String itemKey : config.getConfigurationSection("shops." + shopName + ".items").getKeys(false)) {
             ItemStack item = config.getItemStack("shops." + shopName + ".items." + itemKey);
@@ -133,12 +151,14 @@ public class ShopCommand implements CommandExecutor, Listener {
     public void onPlayerInteractEntityEvent(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
         Entity entity = event.getRightClicked();
-        if (entity != null && (entity instanceof NPC)) {
-            NPC npc = (NPC) entity;
-            if (npc.getId() == config.getInt("shops." + npc.getName() + ".npc")) {
-                String shopName = config.getString("shops." + npc.getName() + ".name");
-                openShop(player, shopName);
+        
+        if (entity != null && npcRegistry.isNPC(entity)) {
+            NPC npc = CitizensAPI.getNPCRegistry().getNPC(entity);
+            if (npc != null && npc.getId() == config.getInt("shops." + npc.getName() + ".npc")) {
                 event.setCancelled(true);
+                
+                String shopName = npc.getName();
+                openShop(player, shopName);
             }
         }
     }
