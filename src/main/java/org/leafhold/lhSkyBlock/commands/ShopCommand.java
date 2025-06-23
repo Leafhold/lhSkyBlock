@@ -6,9 +6,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Entity;
 import org.bukkit.event.Listener;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.Bukkit;
 
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
@@ -28,6 +35,7 @@ public class ShopCommand implements CommandExecutor, Listener {
     private lhSkyBlock plugin;
     private DatabaseManager databaseManager;
     private FileConfiguration config;
+    private NPCRegistry npcRegistry;
 
     public ShopCommand(lhSkyBlock plugin) {
         this.plugin = plugin;
@@ -43,6 +51,7 @@ public class ShopCommand implements CommandExecutor, Listener {
             plugin.saveResource(plugin.getDataFolder() + "/shops.yml", false);
         }
         this.config = YamlConfiguration.loadConfiguration(configFile);
+        this.npcRegistry = CitizensAPI.getNPCRegistry();
     }
 
   @Override
@@ -70,14 +79,63 @@ public class ShopCommand implements CommandExecutor, Listener {
         return false;
     }
 
-    private void createShop(Player player, String shopName) {
+    private boolean createShop(Player player, String shopName) {
         if (config.contains("shops." + shopName)) {
             player.sendMessage(Component.text("A shop with this name already exists.").color(NamedTextColor.RED));
-            return;
+            return false;
         }
 
-        NPCRegistry npcRegistry = CitizensAPI.getNPCRegistry();
         NPC shopNPC = npcRegistry.createNPC(EntityType.VILLAGER, shopName);
+        shopNPC.spawn(player.getLocation());
+        shopNPC.setProtected(true);
+
         config.set("shops." + shopName + ".npc", shopNPC.getId());
+        try {
+            config.save(new File(plugin.getDataFolder(), "shops.yml"));
+        } catch (Exception e) {
+            player.sendMessage(Component.text("Failed to save shop configuration.").color(NamedTextColor.RED));
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    private void openShop(Player player, String shopName) {
+        if (!config.contains("shops." + shopName)) {
+            player.sendMessage(Component.text("This shop does not exist.").color(NamedTextColor.RED));
+            return;
+            }
+        Inventory shopInventory = Bukkit.createInventory(player, 54, Component.text(shopName));
+        for (String itemKey : config.getConfigurationSection("shops." + shopName + ".items").getKeys(false)) {
+            ItemStack item = config.getItemStack("shops." + shopName + ".items." + itemKey);
+            Integer slot = config.getInt("shops." + shopName + ".items." + itemKey + ".slot", -1);
+            Integer defaultAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".default_amount", 1);
+            Integer price = config.getInt("shops." + shopName + ".items." + itemKey + ".price", 0);
+            Integer minAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".min_amount", 1);
+            
+            if (item != null && slot >= 0 && slot < shopInventory.getSize()) {
+                item.setAmount(defaultAmount);
+                ItemMeta meta = item.getItemMeta();
+                meta.lore(java.util.Collections.singletonList(Component.text("Price: " + price).color(NamedTextColor.GREEN)));
+                item.setItemMeta(meta);
+                shopInventory.setItem(slot, item);
+            }
+        }
+        player.openInventory(shopInventory);
+    }
+
+    @EventHandler
+    public void onPlayerInteractEntityEvent(PlayerInteractEntityEvent event) {
+        Player player = event.getPlayer();
+        Entity entity = event.getRightClicked();
+        if (entity != null && (entity instanceof NPC)) {
+            NPC npc = (NPC) entity;
+            if (npc.getId() == config.getInt("shops." + npc.getName() + ".npc")) {
+                String shopName = npc.getName();
+                openShop(player, shopName);
+                event.setCancelled(true);
+            }
+        }
     }
 }
