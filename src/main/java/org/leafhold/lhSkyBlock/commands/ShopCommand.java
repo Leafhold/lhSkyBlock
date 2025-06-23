@@ -151,14 +151,23 @@ public class ShopCommand implements CommandExecutor, Listener {
     public void onPlayerInteractEntityEvent(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
         Entity entity = event.getRightClicked();
-        
         if (entity != null && npcRegistry.isNPC(entity)) {
             NPC npc = CitizensAPI.getNPCRegistry().getNPC(entity);
-            if (npc != null && npc.getId() == config.getInt("shops." + npc.getName() + ".npc")) {
-                event.setCancelled(true);
+            if (npc != null) {
+                String shopName = null;
+                if (config.getConfigurationSection("shops") != null) {
+                    for (String shop : config.getConfigurationSection("shops").getKeys(false)) {
+                        if (config.getInt("shops." + shop + ".npc") == npc.getId()) {
+                            shopName = shop;
+                            break;
+                        }
+                    }
+                }
                 
-                String shopName = npc.getName();
-                openShop(player, shopName);
+                if (shopName != null) {
+                    event.setCancelled(true);
+                    openShop(player, shopName);
+                }
             }
         }
     }
