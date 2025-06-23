@@ -16,10 +16,17 @@ repositories {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/groups/public/"
     }
+    maven {
+        name = "citizens-repo"
+        url = "https://maven.citizensnpcs.co/repo"
+    }
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT")
+    compileOnly("net.citizensnpcs:citizens-main:2.0.39-SNAPSHOT") {
+        exclude group: '*', module: '*'
+    }
 }
 
 tasks {
