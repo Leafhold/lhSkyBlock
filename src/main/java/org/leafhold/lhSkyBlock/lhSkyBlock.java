@@ -53,7 +53,7 @@ public final class lhSkyBlock extends JavaPlugin {
         getCommand("island").setExecutor(islandCommand);
         getServer().getPluginManager().registerEvents(islandCommand, instance);
 
-        ShopCommand shopCommand = new ShopCommand();
+        ShopCommand shopCommand = new ShopCommand(instance);
         getCommand("shop").setExecutor(shopCommand);
         getServer().getPluginManager().registerEvents(shopCommand, instance);
     }
