@@ -41,16 +41,26 @@ public class ShopCommand implements CommandExecutor, Listener {
         this.plugin = plugin;
         this.databaseManager = DatabaseManager.getInstance();
         try {
-        this.databaseManager.connect();
+            this.databaseManager.connect();
         } catch (Exception e) {
-        e.printStackTrace();
+            e.printStackTrace();
         }
 
         File configFile = new File(plugin.getDataFolder(), "shops.yml");
         if (!configFile.exists()) {
-            plugin.saveResource("shops.yml", false);
+            try {
+                configFile.createNewFile();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        this.config = YamlConfiguration.loadConfiguration(configFile);
+        
+        this.config = new YamlConfiguration();
+        try {
+            this.config.load(configFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         this.npcRegistry = CitizensAPI.getNPCRegistry();
     }
 
@@ -118,32 +128,33 @@ public class ShopCommand implements CommandExecutor, Listener {
         if (!config.contains("shops." + shopName)) {
             player.sendMessage(Component.text("This shop does not exist.").color(NamedTextColor.RED));
             return;
-            }
-        if (!config.contains("shops." + shopName + ".items")) {
-            player.sendMessage(Component.text("This shop has no items configured.").color(NamedTextColor.RED));
-            return;
         }
-
+        
         Inventory shopInventory = Bukkit.createInventory(player, 54, Component.text(shopName));
-        for (String itemKey : config.getConfigurationSection("shops." + shopName + ".items").getKeys(false)) {
-            ItemStack item = config.getItemStack("shops." + shopName + ".items." + itemKey);
-            Integer slot = config.getInt("shops." + shopName + ".items." + itemKey + ".slot", -1);
-            Integer defaultAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".default_amount", 1);
-            Double sellPrice = config.getDouble("shops." + shopName + ".items." + itemKey + ".sell.price");
-            Double buyPrice = config.getDouble("shops." + shopName + ".items." + itemKey + ".buy.price");
-            Integer minSellAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".sell.min_amount", 1);
-            Integer minBuyAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".buy.min_amount", 1);
-            
-            if (item != null && slot >= 0 && slot < shopInventory.getSize()) {
-                item.setAmount(defaultAmount);
-                ItemMeta meta = item.getItemMeta();
-                meta.lore(java.util.Collections.singletonList(Component.text("Sell price: $" + sellPrice).color(NamedTextColor.GREEN)
-                    .append(Component.text("Buy price: $" + buyPrice).color(NamedTextColor.RED))
-                ));
-                item.setItemMeta(meta);
-                shopInventory.setItem(slot, item);
+        if (config.getConfigurationSection("shops." + shopName + ".items") != null) {
+            for (String itemKey : config.getConfigurationSection("shops." + shopName + ".items").getKeys(false)) {
+                ItemStack item = config.getItemStack("shops." + shopName + ".items." + itemKey);
+                Integer slot = config.getInt("shops." + shopName + ".items." + itemKey + ".slot", -1);
+                Integer defaultAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".default_amount", 1);
+                Double sellPrice = config.getDouble("shops." + shopName + ".items." + itemKey + ".sell.price");
+                Double buyPrice = config.getDouble("shops." + shopName + ".items." + itemKey + ".buy.price");
+                Integer minSellAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".sell.min_amount", 1);
+                Integer minBuyAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".buy.min_amount", 1);
+                
+                if (item != null && slot >= 0 && slot < shopInventory.getSize()) {
+                    item.setAmount(defaultAmount);
+                    ItemMeta meta = item.getItemMeta();
+                    meta.lore(java.util.Collections.singletonList(Component.text("Sell price: $" + sellPrice).color(NamedTextColor.GREEN)
+                        .append(Component.text("Buy price: $" + buyPrice).color(NamedTextColor.RED))
+                    ));
+                    item.setItemMeta(meta);
+                    shopInventory.setItem(slot, item);
+                }
             }
+        } else {
+            player.sendMessage(Component.text("This shop is empty. No items have been configured yet.").color(NamedTextColor.YELLOW));
         }
+        
         player.openInventory(shopInventory);
     }
 
