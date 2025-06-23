@@ -73,14 +73,9 @@ public class ShopCommand implements CommandExecutor, Listener {
                     player.sendMessage(Component.text("Please specify an NPC ID.").color(NamedTextColor.RED));
                     return true;
                 }
-                if (args.length < 3) {
-                    player.sendMessage(Component.text("Please specify a shop name.").color(NamedTextColor.RED));
-                    return true;
-                }
                 try {
                     Integer npcId = Integer.parseInt(args[1]);
-                    String shopName = args[2];
-                    return createShop(player, npcId, shopName);
+                    return createShop(player, npcId);
                 } catch (NumberFormatException e) {
                     player.sendMessage(Component.text("Invalid NPC ID. Please provide a valid number.").color(NamedTextColor.RED));
                     return true;
@@ -90,7 +85,7 @@ public class ShopCommand implements CommandExecutor, Listener {
         return false;
     }
 
-    private boolean createShop(Player player, Integer npcId, String shopName) {
+    private boolean createShop(Player player, Integer npcId) {
         if (config.contains("shops." + shopName)) {
             player.sendMessage(Component.text("A shop with this name already exists.").color(NamedTextColor.RED));
             return true;
@@ -156,7 +151,7 @@ public class ShopCommand implements CommandExecutor, Listener {
             NPC npc = CitizensAPI.getNPCRegistry().getNPC(entity);
             if (npc != null && npc.getId() == config.getInt("shops." + npc.getName() + ".npc")) {
                 event.setCancelled(true);
-                
+
                 String shopName = npc.getName();
                 openShop(player, shopName);
             }
