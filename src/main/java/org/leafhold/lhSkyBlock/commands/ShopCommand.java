@@ -111,13 +111,17 @@ public class ShopCommand implements CommandExecutor, Listener {
             ItemStack item = config.getItemStack("shops." + shopName + ".items." + itemKey);
             Integer slot = config.getInt("shops." + shopName + ".items." + itemKey + ".slot", -1);
             Integer defaultAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".default_amount", 1);
-            Integer price = config.getInt("shops." + shopName + ".items." + itemKey + ".price", 0);
-            Integer minAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".min_amount", 1);
+            Double sellPrice = config.getDouble("shops." + shopName + ".items." + itemKey + ".sell.price");
+            Double buyPrice = config.getDouble("shops." + shopName + ".items." + itemKey + ".buy.price");
+            Integer minSellAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".sell.min_amount", 1);
+            Integer minBuyAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".buy.min_amount", 1);
             
             if (item != null && slot >= 0 && slot < shopInventory.getSize()) {
                 item.setAmount(defaultAmount);
                 ItemMeta meta = item.getItemMeta();
-                meta.lore(java.util.Collections.singletonList(Component.text("Price: " + price).color(NamedTextColor.GREEN)));
+                meta.lore(java.util.Collections.singletonList(Component.text("Sell price: $" + sellPrice).color(NamedTextColor.GREEN)
+                    .append(Component.text("Buy price: $" + buyPrice).color(NamedTextColor.RED))
+                ));
                 item.setItemMeta(meta);
                 shopInventory.setItem(slot, item);
             }
@@ -132,7 +136,7 @@ public class ShopCommand implements CommandExecutor, Listener {
         if (entity != null && (entity instanceof NPC)) {
             NPC npc = (NPC) entity;
             if (npc.getId() == config.getInt("shops." + npc.getName() + ".npc")) {
-                String shopName = npc.getName();
+                String shopName = config.getString("shops." + npc.getName() + ".name");
                 openShop(player, shopName);
                 event.setCancelled(true);
             }
