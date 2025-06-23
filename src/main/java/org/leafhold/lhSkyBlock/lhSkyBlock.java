@@ -1,4 +1,4 @@
-    package org.leafhold.lhSkyBlock;
+package org.leafhold.lhSkyBlock;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;

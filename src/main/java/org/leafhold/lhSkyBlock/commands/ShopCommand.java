@@ -8,9 +8,14 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.entity.EntityType;
 
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
+
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPCRegistry;
+import net.citizensnpcs.api.npc.NPC;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -34,6 +39,10 @@ public class ShopCommand implements CommandExecutor, Listener {
         }
 
         File configFile = new File(plugin.getDataFolder(), "shops.yml");
+        if (!configFile.exists()) {
+            plugin.saveResource(plugin.getDataFolder() + "/shops.yml", false);
+        }
+        this.config = YamlConfiguration.loadConfiguration(configFile);
     }
 
   @Override
@@ -55,8 +64,20 @@ public class ShopCommand implements CommandExecutor, Listener {
                     player.sendMessage(Component.text("Please specify a shop name.").color(NamedTextColor.RED));
                     return true;
                 }
+                createShop(player, args[1]);
         }
 
         return false;
+    }
+
+    private void createShop(Player player, String shopName) {
+        if (config.contains("shops." + shopName)) {
+            player.sendMessage(Component.text("A shop with this name already exists.").color(NamedTextColor.RED));
+            return;
+        }
+
+        NPCRegistry npcRegistry = CitizensAPI.getNPCRegistry();
+        NPC shopNPC = npcRegistry.createNPC(EntityType.VILLAGER, shopName);
+        config.set("shops." + shopName + ".npc", shopNPC.getId());
     }
 }
