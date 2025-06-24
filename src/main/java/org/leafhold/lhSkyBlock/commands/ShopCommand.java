@@ -267,18 +267,6 @@ public class ShopCommand implements CommandExecutor, Listener {
             decreaseAllItem.setAmount(64);
             transactionMenu.setItem(18, decreaseAllItem);
 
-            ItemStack buyStackItem = new ItemStack(Material.CHEST);
-            ItemMeta buyStackMeta = buyStackItem.getItemMeta();
-            if (isBuying) {
-                buyStackMeta.displayName(Component.text("Buy multiple stacks").color(NamedTextColor.RED));
-            } else {
-                buyStackMeta.displayName(Component.text("Sell multiple stacks").color(NamedTextColor.GREEN));
-            }
-            buyStackMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
-            buyStackMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "buy_stack");
-            buyStackItem.setItemMeta(buyStackMeta);
-            transactionMenu.setItem(4, buyStackItem);
-
             ItemStack confirmItem = new ItemStack(Material.GREEN_STAINED_GLASS);
             ItemMeta confirmMeta = confirmItem.getItemMeta();
             confirmMeta.displayName(Component.text("Confirm Transaction").color(NamedTextColor.GREEN));
@@ -300,34 +288,6 @@ public class ShopCommand implements CommandExecutor, Listener {
         } else {
             player.sendMessage(Component.text("There was an error retrieving this item from the shop.").color(NamedTextColor.RED));
             return;
-        }
-    }
-
-    private void openStackBuyMenu(Player player, String shopName, Material itemType) {
-        Inventory stackBuyMenu = Bukkit.createInventory(new ShopHolder(), 54, Component.text(shopName));
-        String shopKey = null;
-        if (config.getConfigurationSection("shops") != null) {
-            for (String shop : config.getConfigurationSection("shops").getKeys(false)) {
-                String shopNameKey = config.getString("shops." + shop + ".name", shop);
-                if (shopName.equalsIgnoreCase(shopNameKey)) {
-                    shopKey = shop;
-                    break;
-                }
-            }
-        }
-        if (shopKey == null) {
-            player.sendMessage(Component.text("Could not find the shop named " + shopName + ".").color(NamedTextColor.RED));
-            return;
-        }
-        ItemStack item = new ItemStack(itemType);
-        if (config.contains("shops." + shopKey + ".items." + item.getType().name().toLowerCase())) {
-            ItemMeta itemMeta = Bukkit.getItemFactory().getItemMeta(item.getType());
-            itemMeta.lore(java.util.Collections.singletonList(
-                Component.text("Price: $" + config.getDouble("shops." + shopKey + ".items." + item.getType().name().toLowerCase() + ".buy.price")).color(NamedTextColor.RED)
-            ));
-            item.setItemMeta(itemMeta);
-            stackBuyMenu.setItem(22, item);
-            player.openInventory(stackBuyMenu);
         }
     }
 
@@ -506,11 +466,6 @@ public class ShopCommand implements CommandExecutor, Listener {
                                             meta.lore(updateItemPrice(transactedItem));
                                             transactedItem.setItemMeta(meta);
                                             break;
-                                            
-                                        case "buy_stack":
-                                            if (transactedItem != null) {
-                                                openStackBuyMenu(player, event.getView().getTitle(), transactedItem.getType());
-                                            }
                                     }
                                 }
                                 break;
