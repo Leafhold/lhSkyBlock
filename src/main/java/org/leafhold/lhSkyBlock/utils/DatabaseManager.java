@@ -69,8 +69,7 @@ public class DatabaseManager {
             "name TEXT NOT NULL," +
             "world TEXT NOT NULL," +
             "public BOOLEAN NOT NULL DEFAULT false," +
-            "x INTEGER NOT NULL," +
-            "z INTEGER NOT NULL);";
+            "index INT NOT NULL UNIQUE";
         String memberTable =
             "CREATE TABLE IF NOT EXISTS island_members (" +
             "island_uuid UUID NOT NULL REFERENCES islands(uuid)," +
@@ -87,7 +86,7 @@ public class DatabaseManager {
         }
     }
 
-    public String createIsland(String ownerUUID, String name, String world, int x, int z) throws SQLException {
+    public String createIsland(String ownerUUID, String name, String world) throws SQLException {
         String sql = "SELECT uuid FROM islands WHERE owner = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, ownerUUID);
@@ -95,15 +94,29 @@ public class DatabaseManager {
                 return null;
             }
         }
-        sql = "INSERT INTO islands (uuid, owner, name, world, x, z) VALUES (?, ?, ?, ?, ?, ?)";
+
+        sql = "WITH RECURSIVE seq AS (" + 
+            "SELECT 0 AS n, MAX(`index`) AS max_index FROM island" +
+            "UNION ALL" +
+            "SELECT n + 1, max_index FROM seq WHERE n + 1 <= max_index" +
+            ")" +
+            "SELECT n AS mis_index FROM seq" +
+            "WHERE n NOT IN (SELECT `index` FROM island);";
+
+        Integer misIndex;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            misIndex = preparedStatement.executeUpdate();
+        } 
+
+
+        sql = "INSERT INTO islands (uuid, owner, name, world, index) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             String islandUUID = java.util.UUID.randomUUID().toString();
             preparedStatement.setString(1, islandUUID);
             preparedStatement.setString(2, ownerUUID);
             preparedStatement.setString(3, name);
             preparedStatement.setString(4, world);
-            preparedStatement.setInt(5, x);
-            preparedStatement.setInt(6, z);
+            preparedStatement.setInt(5, islandIndex);
             preparedStatement.executeUpdate();
             return islandUUID;
         }
