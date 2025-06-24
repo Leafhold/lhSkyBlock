@@ -36,6 +36,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.UUID;
 import java.io.File;
+import java.util.List;
 
 public class ShopCommand implements CommandExecutor, Listener {
     private lhSkyBlock plugin;
@@ -158,10 +159,12 @@ public class ShopCommand implements CommandExecutor, Listener {
                     item.setAmount(defaultAmount);
                     ItemMeta meta = item.getItemMeta();
                     meta.lore(java.util.Arrays.asList(
-                        Component.text("Sell: $" + sellPrice).color(NamedTextColor.GREEN),
-                        Component.text("Buy: $" + buyPrice).color(NamedTextColor.RED)
+                        Component.text("Buy: $" + buyPrice).color(NamedTextColor.RED),
+                        Component.text("Sell: $" + sellPrice).color(NamedTextColor.GREEN)
                         ));
                     meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "shop_item");
+                    meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_buy_price"), PersistentDataType.DOUBLE, buyPrice);
+                    meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_sell_price"), PersistentDataType.DOUBLE, sellPrice);
                     item.setItemMeta(meta);
                     shopInventory.setItem(slot, item);
                 }
@@ -174,8 +177,16 @@ public class ShopCommand implements CommandExecutor, Listener {
     }
 
     private void openTransactionMenu(Player player, String shopName, ItemStack item) {
-        Inventory transactionMenu = Bukkit.createInventory(new ShopHolder(), 54, Component.text(shopName));
         String shopKey = null;
+        Double price;
+        boolean isBuying = item.getItemMeta().getPersistentDataContainer()
+            .get(new NamespacedKey(plugin, "item_buying"), PersistentDataType.BOOLEAN);
+        price = isBuying ? 
+            item.getItemMeta().getPersistentDataContainer()
+                .get(new NamespacedKey(plugin, "item_buy_price"), PersistentDataType.DOUBLE) :
+            item.getItemMeta().getPersistentDataContainer()
+                .get(new NamespacedKey(plugin, "item_sell_price"), PersistentDataType.DOUBLE);
+        Inventory transactionMenu = Bukkit.createInventory(new ShopHolder(), 54, Component.text(isBuying ? "Buy" : "Sell"));
         if (config.getConfigurationSection("shops") != null) {
             for (String shop : config.getConfigurationSection("shops").getKeys(false)) {
                 String shopNameKey = config.getString("shops." + shop + ".name", shop);
@@ -190,42 +201,154 @@ public class ShopCommand implements CommandExecutor, Listener {
             return;
         }
         if (config.contains("shops." + shopKey + ".items." + item.getType().name().toLowerCase())) {
-            ItemMeta itemMeta = Bukkit.getItemFactory().getItemMeta(item.getType());
-            itemMeta.lore(java.util.Collections.singletonList(
-                Component.text("Price: $" + config.getDouble("shops." + shopKey + ".items." + item.getType().name().toLowerCase() + ".buy.price")).color(NamedTextColor.RED)
-            ));
+            ItemMeta itemMeta = item.getItemMeta();
+            if (isBuying) {
+                itemMeta.lore(java.util.Collections.singletonList(
+                    Component.text("Price: $" + price * item.getAmount()).color(NamedTextColor.RED)
+                ));
+            } else {
+                itemMeta.lore(java.util.Collections.singletonList(
+                    Component.text("Price: $" + price * item.getAmount()).color(NamedTextColor.GREEN)
+                ));
+            }
+            itemMeta.getPersistentDataContainer().remove(new NamespacedKey(plugin, "item_role"));
             item.setItemMeta(itemMeta);
             transactionMenu.setItem(22, item);
-            
-            ItemStack cancelItem = new ItemStack(Material.BARRIER);
-            ItemMeta cancelMeta = cancelItem.getItemMeta();
-            cancelMeta.displayName(Component.text("Cancel").color(NamedTextColor.RED));
-            cancelMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
-            cancelMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "cancel_item");
-            cancelItem.setItemMeta(cancelMeta);
-            transactionMenu.setItem(49, cancelItem);
 
-            ItemStack increaseItem = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
+            ItemStack increaseItem = new ItemStack(Material.LIME_DYE);
             ItemMeta increaseMeta = increaseItem.getItemMeta();
-            increaseMeta.displayName(Component.text("Increase amount by 1").color(NamedTextColor.GREEN));
+            increaseMeta.displayName(Component.text("Add 1").color(NamedTextColor.GREEN));
             increaseMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
             increaseMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "increase_item");
             increaseItem.setItemMeta(increaseMeta);
             transactionMenu.setItem(24, increaseItem);
 
-            ItemStack decreaseItem = new ItemStack(Material.RED_STAINED_GLASS_PANE);
+            ItemStack increase8Item = new ItemStack(Material.LIME_DYE);
+            ItemMeta increase8Meta = increase8Item.getItemMeta();
+            increase8Meta.displayName(Component.text("Add 8").color(NamedTextColor.GREEN));
+            increase8Meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
+            increase8Meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "increase_item_8");
+            increase8Item.setItemMeta(increase8Meta);
+            increase8Item.setAmount(8);
+            transactionMenu.setItem(25, increase8Item);
+
+            ItemStack increaseAllItem = new ItemStack(Material.LIME_DYE);
+            ItemMeta increaseAllMeta = increaseAllItem.getItemMeta();
+            increaseAllMeta.displayName(Component.text("Set to max").color(NamedTextColor.GREEN));
+            increaseAllMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
+            increaseAllMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "increase_item_all");
+            increaseAllItem.setItemMeta(increaseAllMeta);
+            increaseAllItem.setAmount(item.getMaxStackSize());
+            transactionMenu.setItem(26, increaseAllItem);
+
+            ItemStack decreaseItem = new ItemStack(Material.RED_DYE);
             ItemMeta decreaseMeta = decreaseItem.getItemMeta();
-            decreaseMeta.displayName(Component.text("Decrease amount by 1").color(NamedTextColor.RED));
+            decreaseMeta.displayName(Component.text("Remove 1").color(NamedTextColor.RED));
             decreaseMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
             decreaseMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "decrease_item");
             decreaseItem.setItemMeta(decreaseMeta);
             transactionMenu.setItem(20, decreaseItem);
+
+            ItemStack decrease8Item = new ItemStack(Material.RED_DYE);
+            ItemMeta decrease8Meta = decrease8Item.getItemMeta();
+            decrease8Meta.displayName(Component.text("Remove 8").color(NamedTextColor.RED));
+            decrease8Meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
+            decrease8Meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "decrease_item_8");
+            decrease8Item.setItemMeta(decrease8Meta);
+            decrease8Item.setAmount(8);
+            transactionMenu.setItem(19, decrease8Item);
             
+            ItemStack decreaseAllItem = new ItemStack(Material.RED_DYE);
+            ItemMeta decreaseAllMeta = decreaseAllItem.getItemMeta();
+            decreaseAllMeta.displayName(Component.text("Set to 1").color(NamedTextColor.RED));
+            decreaseAllMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
+            decreaseAllMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "decrease_item_all");
+            decreaseAllItem.setItemMeta(decreaseAllMeta);
+            decreaseAllItem.setAmount(64);
+            transactionMenu.setItem(18, decreaseAllItem);
+
+            ItemStack buyStackItem = new ItemStack(Material.CHEST);
+            ItemMeta buyStackMeta = buyStackItem.getItemMeta();
+            if (isBuying) {
+                buyStackMeta.displayName(Component.text("Buy multiple stacks").color(NamedTextColor.RED));
+            } else {
+                buyStackMeta.displayName(Component.text("Sell multiple stacks").color(NamedTextColor.GREEN));
+            }
+            buyStackMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
+            buyStackMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "buy_stack");
+            buyStackItem.setItemMeta(buyStackMeta);
+            transactionMenu.setItem(4, buyStackItem);
+
+            ItemStack confirmItem = new ItemStack(Material.GREEN_STAINED_GLASS);
+            ItemMeta confirmMeta = confirmItem.getItemMeta();
+            confirmMeta.displayName(Component.text("Confirm Transaction").color(NamedTextColor.GREEN));
+            confirmMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
+            confirmMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "confirm_item");
+            confirmItem.setItemMeta(confirmMeta);
+            transactionMenu.setItem(48, confirmItem);
+
+            ItemStack cancelItem = new ItemStack(Material.RED_STAINED_GLASS);
+            ItemMeta cancelMeta = cancelItem.getItemMeta();
+            cancelMeta.displayName(Component.text("Cancel Transaction").color(NamedTextColor.RED));
+            cancelMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
+            cancelMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "cancel_item");
+            cancelItem.setItemMeta(cancelMeta);
+            transactionMenu.setItem(50, cancelItem);
+
 
             player.openInventory(transactionMenu);
         } else {
             player.sendMessage(Component.text("There was an error retrieving this item from the shop.").color(NamedTextColor.RED));
             return;
+        }
+    }
+
+    private void openStackBuyMenu(Player player, String shopName, Material itemType) {
+        Inventory stackBuyMenu = Bukkit.createInventory(new ShopHolder(), 54, Component.text(shopName));
+        String shopKey = null;
+        if (config.getConfigurationSection("shops") != null) {
+            for (String shop : config.getConfigurationSection("shops").getKeys(false)) {
+                String shopNameKey = config.getString("shops." + shop + ".name", shop);
+                if (shopName.equalsIgnoreCase(shopNameKey)) {
+                    shopKey = shop;
+                    break;
+                }
+            }
+        }
+        if (shopKey == null) {
+            player.sendMessage(Component.text("Could not find the shop named " + shopName + ".").color(NamedTextColor.RED));
+            return;
+        }
+        ItemStack item = new ItemStack(itemType);
+        if (config.contains("shops." + shopKey + ".items." + item.getType().name().toLowerCase())) {
+            ItemMeta itemMeta = Bukkit.getItemFactory().getItemMeta(item.getType());
+            itemMeta.lore(java.util.Collections.singletonList(
+                Component.text("Price: $" + config.getDouble("shops." + shopKey + ".items." + item.getType().name().toLowerCase() + ".buy.price")).color(NamedTextColor.RED)
+            ));
+            item.setItemMeta(itemMeta);
+            stackBuyMenu.setItem(22, item);
+            player.openInventory(stackBuyMenu);
+        }
+    }
+
+    private List<Component> updateItemPrice(ItemStack item) {
+        Double price;
+        Boolean isBuying = item.getItemMeta().getPersistentDataContainer()
+            .get(new NamespacedKey(plugin, "item_buying"), PersistentDataType.BOOLEAN);
+        price = isBuying ? 
+            item.getItemMeta().getPersistentDataContainer()
+                .get(new NamespacedKey(plugin, "item_buy_price"), PersistentDataType.DOUBLE) :
+            item.getItemMeta().getPersistentDataContainer()
+                .get(new NamespacedKey(plugin, "item_sell_price"), PersistentDataType.DOUBLE);
+        
+        if (isBuying) {
+            return java.util.Collections.singletonList(
+                Component.text("Price: $" + price * item.getAmount()).color(NamedTextColor.RED)
+            );
+        } else {
+            return java.util.Collections.singletonList(
+                Component.text("Price: $" + price * item.getAmount()).color(NamedTextColor.GREEN)
+            ); 
         }
     }
 
@@ -278,14 +401,48 @@ public class ShopCommand implements CommandExecutor, Listener {
                     
                     if (itemRole != null) {
                         ItemStack item = event.getCurrentItem();
+                        Integer amount = item.getAmount();
+                        Double price;
+                        if (item.getItemMeta().getPersistentDataContainer()
+                            .has(new NamespacedKey(plugin, "item_buy_price"), PersistentDataType.DOUBLE)) {
+                            price = item.getItemMeta().getPersistentDataContainer()
+                                .get(new NamespacedKey(plugin, "item_buy_price"), PersistentDataType.DOUBLE);
+                        } else {
+                            price = item.getItemMeta().getPersistentDataContainer()
+                                .get(new NamespacedKey(plugin, "item_sell_price"), PersistentDataType.DOUBLE);
+                        }
                         switch(itemRole) {
                             case "shop_item":
-                                openTransactionMenu(player, event.getView().getTitle(), item);
+                                Double buyPrice = item.getItemMeta().getPersistentDataContainer()
+                                    .get(new NamespacedKey(plugin, "item_buy_price"), PersistentDataType.DOUBLE);
+                                Double sellPrice = item.getItemMeta().getPersistentDataContainer()
+                                    .get(new NamespacedKey(plugin, "item_sell_price"), PersistentDataType.DOUBLE);
+
+                                if (event.isLeftClick() && buyPrice != null) {
+                                    ItemMeta itemMeta = item.getItemMeta();
+                                    itemMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_buying"), PersistentDataType.BOOLEAN, true);
+                                    item.setItemMeta(itemMeta);
+                                    openTransactionMenu(player, event.getView().getTitle(), item);
+                                } else if (event.isRightClick() && sellPrice != null) {
+                                    ItemMeta itemMeta = item.getItemMeta();
+                                    itemMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_buying"), PersistentDataType.BOOLEAN, false);
+                                    item.setItemMeta(itemMeta);
+                                    openTransactionMenu(player, event.getView().getTitle(), item);
+                                }
                                 break;
                             case "transaction_item":
                                 ItemStack transactedItem = event.getClickedInventory().getItem(22);
+                                ItemMeta meta = transactedItem.getItemMeta();
                                 String itemKey = item.getItemMeta().getPersistentDataContainer()
                                     .get(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING);
+                                Boolean isBuying = transactedItem.getItemMeta().getPersistentDataContainer()
+                                    .get(new NamespacedKey(plugin, "item_buying"), PersistentDataType.BOOLEAN);
+                                price = isBuying ?
+                                    transactedItem.getItemMeta().getPersistentDataContainer()
+                                        .get(new NamespacedKey(plugin, "item_buy_price"), PersistentDataType.DOUBLE) :
+                                    transactedItem.getItemMeta().getPersistentDataContainer()
+                                        .get(new NamespacedKey(plugin, "item_sell_price"), PersistentDataType.DOUBLE);
+
                                 if (itemKey != null) {
                                     switch (itemKey) {
                                         case "cancel_item":
@@ -297,7 +454,28 @@ public class ShopCommand implements CommandExecutor, Listener {
                                                 if (currentAmount < transactedItem.getMaxStackSize()) {
                                                     transactedItem.setAmount(currentAmount + 1);
                                                 }
+                                                meta.lore(updateItemPrice(transactedItem));
+                                                transactedItem.setItemMeta(meta);
                                             }
+                                            break;
+                                        case "increase_item_8":
+                                            if (transactedItem != null) {
+                                                int currentAmount = transactedItem.getAmount();
+                                                if (currentAmount + 8 <= transactedItem.getMaxStackSize()) {
+                                                    transactedItem.setAmount(currentAmount + 8);
+                                                } else {
+                                                    transactedItem.setAmount(transactedItem.getMaxStackSize());
+                                                }
+                                                meta.lore(updateItemPrice(transactedItem));
+                                                transactedItem.setItemMeta(meta);
+                                            }
+                                            break;
+                                        case "increase_item_all":
+                                            if (transactedItem != null) {
+                                                transactedItem.setAmount(transactedItem.getMaxStackSize());
+                                            }
+                                            meta.lore(updateItemPrice(transactedItem));
+                                            transactedItem.setItemMeta(meta);
                                             break;
                                         case "decrease_item":
                                             if (transactedItem != null) {
@@ -305,8 +483,34 @@ public class ShopCommand implements CommandExecutor, Listener {
                                                 if (currentAmount > 1) {
                                                     transactedItem.setAmount(currentAmount - 1);
                                                 }
+                                                meta.lore(updateItemPrice(transactedItem));
+                                                transactedItem.setItemMeta(meta);
                                             }
                                             break;
+                                        case "decrease_item_8":
+                                            if (transactedItem != null) {
+                                                int currentAmount = transactedItem.getAmount();
+                                                if (currentAmount - 8 >= 1) {
+                                                    transactedItem.setAmount(currentAmount - 8);
+                                                } else {
+                                                    transactedItem.setAmount(1);
+                                                }
+                                                meta.lore(updateItemPrice(transactedItem));
+                                                transactedItem.setItemMeta(meta);
+                                            }
+                                            break;
+                                        case "decrease_item_all":
+                                            if (transactedItem != null) {
+                                                transactedItem.setAmount(1);
+                                            }
+                                            meta.lore(updateItemPrice(transactedItem));
+                                            transactedItem.setItemMeta(meta);
+                                            break;
+                                            
+                                        case "buy_stack":
+                                            if (transactedItem != null) {
+                                                openStackBuyMenu(player, event.getView().getTitle(), transactedItem.getType());
+                                            }
                                     }
                                 }
                                 break;
