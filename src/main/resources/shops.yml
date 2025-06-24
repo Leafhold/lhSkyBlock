@@ -5,7 +5,7 @@
 #     name: "Minerals Shop"
 #     npc: 1
 #     items:
-#       iron_ore:
+#       iron_ingot:
 #         slot: 1
 #         default_amount: 1
 #         buy:
