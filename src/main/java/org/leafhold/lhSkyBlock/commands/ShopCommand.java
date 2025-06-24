@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
@@ -95,6 +96,10 @@ public class ShopCommand implements CommandExecutor, Listener {
                     player.sendMessage(Component.text("Invalid NPC ID. Please provide a valid number.").color(NamedTextColor.RED));
                     return true;
                 }
+            case "reload":
+                reloadConfig();
+                player.sendMessage(Component.text("Shop configuration reloaded.").color(NamedTextColor.GREEN));
+                return true;
         }
 
         return false;
@@ -130,10 +135,13 @@ public class ShopCommand implements CommandExecutor, Listener {
             return;
         }
         
-        Inventory shopInventory = Bukkit.createInventory(player, 54, Component.text(shopName));
+        String name = config.getString("shops." + shopName + ".name", shopName);
+        if (name == null || name.isEmpty()) name = shopName;
+
+        Inventory shopInventory = Bukkit.createInventory(player, 54, Component.text(name));
         if (config.getConfigurationSection("shops." + shopName + ".items") != null) {
             for (String itemKey : config.getConfigurationSection("shops." + shopName + ".items").getKeys(false)) {
-                ItemStack item = config.getItemStack("shops." + shopName + ".items." + itemKey);
+                ItemStack item = new ItemStack(Material.getMaterial(itemKey.toUpperCase()));
                 Integer slot = config.getInt("shops." + shopName + ".items." + itemKey + ".slot", -1);
                 Integer defaultAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".default_amount", 1);
                 Double sellPrice = config.getDouble("shops." + shopName + ".items." + itemKey + ".sell.price");
@@ -144,18 +152,27 @@ public class ShopCommand implements CommandExecutor, Listener {
                 if (item != null && slot >= 0 && slot < shopInventory.getSize()) {
                     item.setAmount(defaultAmount);
                     ItemMeta meta = item.getItemMeta();
-                    meta.lore(java.util.Collections.singletonList(Component.text("Sell price: $" + sellPrice).color(NamedTextColor.GREEN)
-                        .append(Component.text("Buy price: $" + buyPrice).color(NamedTextColor.RED))
-                    ));
+                    meta.lore(java.util.Arrays.asList(
+                        Component.text("Sell: $" + sellPrice * defaultAmount ).color(NamedTextColor.GREEN),
+                        Component.text("Buy: $" + buyPrice * defaultAmount ).color(NamedTextColor.RED)
+                        ));
                     item.setItemMeta(meta);
                     shopInventory.setItem(slot, item);
                 }
             }
+            player.openInventory(shopInventory);
         } else {
             player.sendMessage(Component.text("This shop is empty. No items have been configured yet.").color(NamedTextColor.YELLOW));
+            return;
         }
-        
-        player.openInventory(shopInventory);
+    }
+
+    private void reloadConfig() {
+        try {
+            config.load(new File(plugin.getDataFolder(), "shops.yml"));
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to reload shops configuration: " + e.getMessage());
+        }
     }
 
     @EventHandler
