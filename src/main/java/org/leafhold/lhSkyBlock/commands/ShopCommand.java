@@ -17,6 +17,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 
@@ -159,6 +161,7 @@ public class ShopCommand implements CommandExecutor, Listener {
                         Component.text("Sell: $" + sellPrice).color(NamedTextColor.GREEN),
                         Component.text("Buy: $" + buyPrice).color(NamedTextColor.RED)
                         ));
+                    meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "shop_item");
                     item.setItemMeta(meta);
                     shopInventory.setItem(slot, item);
                 }
@@ -187,7 +190,38 @@ public class ShopCommand implements CommandExecutor, Listener {
             return;
         }
         if (config.contains("shops." + shopKey + ".items." + item.getType().name().toLowerCase())) {
+            ItemMeta itemMeta = Bukkit.getItemFactory().getItemMeta(item.getType());
+            itemMeta.lore(java.util.Collections.singletonList(
+                Component.text("Price: $" + config.getDouble("shops." + shopKey + ".items." + item.getType().name().toLowerCase() + ".buy.price")).color(NamedTextColor.RED)
+            ));
+            item.setItemMeta(itemMeta);
             transactionMenu.setItem(22, item);
+            
+            ItemStack cancelItem = new ItemStack(Material.BARRIER);
+            ItemMeta cancelMeta = cancelItem.getItemMeta();
+            cancelMeta.displayName(Component.text("Cancel").color(NamedTextColor.RED));
+            cancelMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
+            cancelMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "cancel_item");
+            cancelItem.setItemMeta(cancelMeta);
+            transactionMenu.setItem(49, cancelItem);
+
+            ItemStack increaseItem = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
+            ItemMeta increaseMeta = increaseItem.getItemMeta();
+            increaseMeta.displayName(Component.text("Increase amount by 1").color(NamedTextColor.GREEN));
+            increaseMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
+            increaseMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "increase_item");
+            increaseItem.setItemMeta(increaseMeta);
+            transactionMenu.setItem(24, increaseItem);
+
+            ItemStack decreaseItem = new ItemStack(Material.RED_STAINED_GLASS_PANE);
+            ItemMeta decreaseMeta = decreaseItem.getItemMeta();
+            decreaseMeta.displayName(Component.text("Decrease amount by 1").color(NamedTextColor.RED));
+            decreaseMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
+            decreaseMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "decrease_item");
+            decreaseItem.setItemMeta(decreaseMeta);
+            transactionMenu.setItem(20, decreaseItem);
+            
+
             player.openInventory(transactionMenu);
         } else {
             player.sendMessage(Component.text("There was an error retrieving this item from the shop.").color(NamedTextColor.RED));
@@ -239,8 +273,45 @@ public class ShopCommand implements CommandExecutor, Listener {
                 event.setCancelled(true);
                 
                 if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
-                    ItemStack item = event.getCurrentItem();
-                    openTransactionMenu(player, event.getView().getTitle(), item);
+                    String itemRole = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
+                        .get(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING);
+                    
+                    if (itemRole != null) {
+                        ItemStack item = event.getCurrentItem();
+                        switch(itemRole) {
+                            case "shop_item":
+                                openTransactionMenu(player, event.getView().getTitle(), item);
+                                break;
+                            case "transaction_item":
+                                ItemStack transactedItem = event.getClickedInventory().getItem(22);
+                                String itemKey = item.getItemMeta().getPersistentDataContainer()
+                                    .get(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING);
+                                if (itemKey != null) {
+                                    switch (itemKey) {
+                                        case "cancel_item":
+                                            player.closeInventory();
+                                            break;
+                                        case "increase_item":
+                                            if (transactedItem != null) {
+                                                int currentAmount = transactedItem.getAmount();
+                                                if (currentAmount < transactedItem.getMaxStackSize()) {
+                                                    transactedItem.setAmount(currentAmount + 1);
+                                                }
+                                            }
+                                            break;
+                                        case "decrease_item":
+                                            if (transactedItem != null) {
+                                                int currentAmount = transactedItem.getAmount();
+                                                if (currentAmount > 1) {
+                                                    transactedItem.setAmount(currentAmount - 1);
+                                                }
+                                            }
+                                            break;
+                                    }
+                                }
+                                break;
+                        }
+                    }
                 }
             }
             else if (event.isShiftClick()) {
