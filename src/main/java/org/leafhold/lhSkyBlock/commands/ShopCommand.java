@@ -17,9 +17,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
+import org.leafhold.lhSkyBlock.shop.ShopHolder;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPCRegistry;
@@ -137,8 +140,8 @@ public class ShopCommand implements CommandExecutor, Listener {
         
         String name = config.getString("shops." + shopName + ".name", shopName);
         if (name == null || name.isEmpty()) name = shopName;
-
-        Inventory shopInventory = Bukkit.createInventory(player, 54, Component.text(name));
+        
+        Inventory shopInventory = Bukkit.createInventory(new ShopHolder(), 54, Component.text(name));
         if (config.getConfigurationSection("shops." + shopName + ".items") != null) {
             for (String itemKey : config.getConfigurationSection("shops." + shopName + ".items").getKeys(false)) {
                 ItemStack item = new ItemStack(Material.getMaterial(itemKey.toUpperCase()));
@@ -153,8 +156,8 @@ public class ShopCommand implements CommandExecutor, Listener {
                     item.setAmount(defaultAmount);
                     ItemMeta meta = item.getItemMeta();
                     meta.lore(java.util.Arrays.asList(
-                        Component.text("Sell: $" + sellPrice * defaultAmount ).color(NamedTextColor.GREEN),
-                        Component.text("Buy: $" + buyPrice * defaultAmount ).color(NamedTextColor.RED)
+                        Component.text("Sell: $" + sellPrice).color(NamedTextColor.GREEN),
+                        Component.text("Buy: $" + buyPrice).color(NamedTextColor.RED)
                         ));
                     item.setItemMeta(meta);
                     shopInventory.setItem(slot, item);
@@ -195,6 +198,39 @@ public class ShopCommand implements CommandExecutor, Listener {
                 if (shopName != null) {
                     event.setCancelled(true);
                     openShop(player, shopName);
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
+        if (event.getView().getTopInventory().getHolder() instanceof ShopHolder) {
+            
+            if (event.getClickedInventory() != null && 
+                event.getClickedInventory().getHolder() instanceof ShopHolder) {
+                
+                event.setCancelled(true);
+                
+                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
+                    ItemStack item = event.getCurrentItem();
+                    player.sendMessage(Component.text("You clicked on: " + item.getType().name()).color(NamedTextColor.YELLOW));
+                }
+            }
+            else if (event.isShiftClick()) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof ShopHolder) {
+            for (int slot : event.getRawSlots()) {
+                if (slot < event.getView().getTopInventory().getSize()) {
+                    event.setCancelled(true);
+                    break;
                 }
             }
         }
