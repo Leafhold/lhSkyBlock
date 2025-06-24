@@ -69,7 +69,7 @@ public class DatabaseManager {
             "name TEXT NOT NULL," +
             "world TEXT NOT NULL," +
             "public BOOLEAN NOT NULL DEFAULT false," +
-            "index INT NOT NULL UNIQUE";
+            "index INT NOT NULL UNIQUE);";
         String memberTable =
             "CREATE TABLE IF NOT EXISTS island_members (" +
             "island_uuid UUID NOT NULL REFERENCES islands(uuid)," +
@@ -121,7 +121,9 @@ public class DatabaseManager {
             throw new SQLException("Failed to determine island index.");
         }
 
-        sql = "INSERT INTO islands (uuid, owner, name, world, index) VALUES (?, ?, ?, ?, ?, ?)";
+
+
+        sql = "INSERT INTO islands (uuid, owner, name, world, index) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             String islandUUID = java.util.UUID.randomUUID().toString();
             preparedStatement.setString(1, islandUUID);

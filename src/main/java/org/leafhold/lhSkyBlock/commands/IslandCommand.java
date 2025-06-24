@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -230,9 +231,7 @@ public class IslandCommand implements CommandExecutor, Listener {
                             String islandUUID = DatabaseManager.getInstance().createIsland(
                                 player.getUniqueId().toString(), 
                                 player.getName() + "'s Island",
-                                "islands", //todo add world selection logic
-                                0,
-                                0
+                                "islands"
                             );
                             if (islandUUID != null) {
                                 player.sendMessage(Component.text("Island created successfully!").color(NamedTextColor.GREEN));
