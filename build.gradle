@@ -20,10 +20,6 @@ repositories {
         name = "citizens-repo"
         url = "https://maven.citizensnpcs.co/repo"
     }
-    maven {
-        name = "essentialsx-releases"
-        url = "https://repo.essentialsx.net/releases/"
-    }
 }
 
 dependencies {
@@ -31,7 +27,6 @@ dependencies {
     compileOnly("net.citizensnpcs:citizens-main:2.0.39-SNAPSHOT") {
         exclude group: '*', module: '*'
     }
-    compileOnly("net.essentialsx:EssentialsX:2.21.0")
 }
 
 tasks {
