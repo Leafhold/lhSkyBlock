@@ -100,14 +100,26 @@ public class DatabaseManager {
             "UNION ALL" +
             "SELECT n + 1, max_index FROM seq WHERE n + 1 <= max_index" +
             ")" +
-            "SELECT n AS mis_index FROM seq" +
+            "SELECT n AS missing_index FROM seq" +
             "WHERE n NOT IN (SELECT `index` FROM island);";
 
-        Integer misIndex;
+        Integer islandIndex = -1;
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            misIndex = preparedStatement.executeUpdate();
-        } 
+            var resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                Integer missingIndex = resultSet.getInt("missing_index");
+                Integer maxIndex = resultSet.getInt("max_index");
+                if (missingIndex != null) {
+                    islandIndex = missingIndex;
+                } else {
+                    islandIndex = maxIndex + 1;
+                }
+            }
+        }
 
+        if (islandIndex == -1) {
+            throw new SQLException("Failed to determine island index.");
+        }
 
         sql = "INSERT INTO islands (uuid, owner, name, world, index) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -181,7 +193,7 @@ public class DatabaseManager {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, islandUUID);
             preparedStatement.setString(2, player.getUniqueId().toString());
-            int rowsAffected = preparedStatement.executeUpdate();
+            Integer rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected == 0) {
                 return false;
             } else {
