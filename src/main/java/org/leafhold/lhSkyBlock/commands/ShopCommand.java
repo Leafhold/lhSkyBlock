@@ -11,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.checkerframework.checker.units.qual.min;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -21,6 +22,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
@@ -35,6 +37,8 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
+import net.milkbowl.vault.economy.Economy;
+
 import java.util.UUID;
 import java.io.File;
 import java.util.List;
@@ -44,6 +48,7 @@ public class ShopCommand implements CommandExecutor, Listener {
     private DatabaseManager databaseManager;
     private FileConfiguration config;
     private NPCRegistry npcRegistry;
+    private Economy economy;
 
     public ShopCommand(lhSkyBlock plugin) {
         this.plugin = plugin;
@@ -70,6 +75,7 @@ public class ShopCommand implements CommandExecutor, Listener {
             e.printStackTrace();
         }
         this.npcRegistry = CitizensAPI.getNPCRegistry();
+        setupEconomy();
     }
 
   @Override
@@ -110,6 +116,18 @@ public class ShopCommand implements CommandExecutor, Listener {
         }
 
         return false;
+    }
+
+    private void setupEconomy() {
+        if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+            RegisteredServiceProvider<Economy> rsp = Bukkit.getServicesManager().getRegistration(Economy.class);
+            if (rsp != null) {
+                economy = rsp.getProvider();
+                plugin.getLogger().info("Vault economy provider found: " + economy.getName());
+            } else {
+                plugin.getLogger().warning("Vault economy provider not found. Shop transactions will not work.");
+            }
+        }
     }
 
     private boolean createShop(Player player, Integer npcId, String shopName) {
@@ -263,7 +281,7 @@ public class ShopCommand implements CommandExecutor, Listener {
             
             ItemStack decreaseAllItem = new ItemStack(Material.RED_DYE);
             ItemMeta decreaseAllMeta = decreaseAllItem.getItemMeta();
-            decreaseAllMeta.displayName(Component.text("Set to 1").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+            decreaseAllMeta.displayName(Component.text("Set to min").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
             decreaseAllMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
             decreaseAllMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "decrease_item_all");
             decreaseAllItem.setItemMeta(decreaseAllMeta);
@@ -407,9 +425,42 @@ public class ShopCommand implements CommandExecutor, Listener {
                                         .get(new NamespacedKey(plugin, "item_sell_price"), PersistentDataType.DOUBLE);
 
                                 if (itemKey != null) {
+                                    Integer minAmount = isBuying ?
+                                        config.getInt("shops." + event.getView().getTitle() + ".items." + transactedItem.getType().name().toLowerCase() + ".buy.min_amount", 1) :
+                                        config.getInt("shops." + event.getView().getTitle() + ".items." + transactedItem.getType().name().toLowerCase() + ".sell.min_amount", 1);
                                     switch (itemKey) {
                                         case "cancel_item":
                                             player.closeInventory();
+                                            break;
+                                        case "confirm_item":
+                                            Double money = price * transactedItem.getAmount();
+                                            if (item != null && economy != null && price != null) {
+                                                if (isBuying) {
+                                                    if (economy.getBalance(player) >= money) {
+                                                        economy.withdrawPlayer(player, money);
+                                                        player.getInventory().addItem(new ItemStack(transactedItem.getType(), transactedItem.getAmount()));
+                                                        player.sendMessage(Component.text("Shop > ").color(NamedTextColor.GREEN)
+                                                            .append(Component.text("You bought " + transactedItem.getType().name() + " x " + transactedItem.getAmount() + " for $" + money)
+                                                                .color(NamedTextColor.GREEN)));
+                                                        player.closeInventory();
+                                                    } else {
+                                                        player.sendMessage(Component.text("Shop > ").color(NamedTextColor.GREEN)
+                                                            .append(Component.text("You do not have enough money to buy this item.").color(NamedTextColor.RED)));
+                                                    }
+                                                } else {
+                                                    if (player.getInventory().contains(transactedItem.getType(), transactedItem.getAmount())) {
+                                                        economy.depositPlayer(player, money);
+                                                        player.getInventory().removeItem(new ItemStack(transactedItem.getType(), transactedItem.getAmount()));
+                                                        player.sendMessage(Component.text("Shop > ").color(NamedTextColor.GREEN)
+                                                            .append(Component.text("You sold " + transactedItem.getType().name() + " x " + transactedItem.getAmount() + " for $" + money)
+                                                                .color(NamedTextColor.GREEN)));
+                                                        player.closeInventory();
+                                                    } else {
+                                                        player.sendMessage(Component.text("Shop > ").color(NamedTextColor.GREEN)
+                                                            .append(Component.text("You do not have enough of this item to sell.").color(NamedTextColor.RED)));
+                                                    }
+                                                }
+                                            }
                                             break;
                                         case "increase_item":
                                             if (transactedItem != null) {
@@ -443,7 +494,7 @@ public class ShopCommand implements CommandExecutor, Listener {
                                         case "decrease_item":
                                             if (transactedItem != null) {
                                                 int currentAmount = transactedItem.getAmount();
-                                                if (currentAmount > 1) {
+                                                if (currentAmount > minAmount) {
                                                     transactedItem.setAmount(currentAmount - 1);
                                                 }
                                                 meta.lore(updateItemPrice(transactedItem));
@@ -453,7 +504,7 @@ public class ShopCommand implements CommandExecutor, Listener {
                                         case "decrease_item_8":
                                             if (transactedItem != null) {
                                                 int currentAmount = transactedItem.getAmount();
-                                                if (currentAmount - 8 >= 1) {
+                                                if (currentAmount - 8 >= minAmount) {
                                                     transactedItem.setAmount(currentAmount - 8);
                                                 } else {
                                                     transactedItem.setAmount(1);
@@ -464,7 +515,7 @@ public class ShopCommand implements CommandExecutor, Listener {
                                             break;
                                         case "decrease_item_all":
                                             if (transactedItem != null) {
-                                                transactedItem.setAmount(1);
+                                                transactedItem.setAmount(minAmount);
                                             }
                                             meta.lore(updateItemPrice(transactedItem));
                                             transactedItem.setItemMeta(meta);
