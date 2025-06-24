@@ -33,6 +33,7 @@ import net.citizensnpcs.api.npc.NPC;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 
 import java.util.UUID;
 import java.io.File;
@@ -159,8 +160,10 @@ public class ShopCommand implements CommandExecutor, Listener {
                     item.setAmount(defaultAmount);
                     ItemMeta meta = item.getItemMeta();
                     meta.lore(java.util.Arrays.asList(
-                        Component.text("Buy: $" + buyPrice).color(NamedTextColor.RED),
-                        Component.text("Sell: $" + sellPrice).color(NamedTextColor.GREEN)
+                        Component.text("Buy: $").append(Component.text(buyPrice)).color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false),
+                        Component.text("Sell: $").append(Component.text(sellPrice)).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false),
+                        Component.text("Left click to buy").color(NamedTextColor.BLUE).decoration(TextDecoration.ITALIC, false),
+                        Component.text("Right click to sell").color(NamedTextColor.BLUE).decoration(TextDecoration.ITALIC, false)
                         ));
                     meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "shop_item");
                     meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_buy_price"), PersistentDataType.DOUBLE, buyPrice);
@@ -204,11 +207,11 @@ public class ShopCommand implements CommandExecutor, Listener {
             ItemMeta itemMeta = item.getItemMeta();
             if (isBuying) {
                 itemMeta.lore(java.util.Collections.singletonList(
-                    Component.text("Price: $" + price * item.getAmount()).color(NamedTextColor.RED)
+                    Component.text("Price: $" + price * item.getAmount()).color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)
                 ));
             } else {
                 itemMeta.lore(java.util.Collections.singletonList(
-                    Component.text("Price: $" + price * item.getAmount()).color(NamedTextColor.GREEN)
+                    Component.text("Price: $" + price * item.getAmount()).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false)
                 ));
             }
             itemMeta.getPersistentDataContainer().remove(new NamespacedKey(plugin, "item_role"));
@@ -217,7 +220,7 @@ public class ShopCommand implements CommandExecutor, Listener {
 
             ItemStack increaseItem = new ItemStack(Material.LIME_DYE);
             ItemMeta increaseMeta = increaseItem.getItemMeta();
-            increaseMeta.displayName(Component.text("Add 1").color(NamedTextColor.GREEN));
+            increaseMeta.displayName(Component.text("Add 1").color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
             increaseMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
             increaseMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "increase_item");
             increaseItem.setItemMeta(increaseMeta);
@@ -225,7 +228,7 @@ public class ShopCommand implements CommandExecutor, Listener {
 
             ItemStack increase8Item = new ItemStack(Material.LIME_DYE);
             ItemMeta increase8Meta = increase8Item.getItemMeta();
-            increase8Meta.displayName(Component.text("Add 8").color(NamedTextColor.GREEN));
+            increase8Meta.displayName(Component.text("Add 8").color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
             increase8Meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
             increase8Meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "increase_item_8");
             increase8Item.setItemMeta(increase8Meta);
@@ -234,7 +237,7 @@ public class ShopCommand implements CommandExecutor, Listener {
 
             ItemStack increaseAllItem = new ItemStack(Material.LIME_DYE);
             ItemMeta increaseAllMeta = increaseAllItem.getItemMeta();
-            increaseAllMeta.displayName(Component.text("Set to max").color(NamedTextColor.GREEN));
+            increaseAllMeta.displayName(Component.text("Set to max").color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
             increaseAllMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
             increaseAllMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "increase_item_all");
             increaseAllItem.setItemMeta(increaseAllMeta);
@@ -243,7 +246,7 @@ public class ShopCommand implements CommandExecutor, Listener {
 
             ItemStack decreaseItem = new ItemStack(Material.RED_DYE);
             ItemMeta decreaseMeta = decreaseItem.getItemMeta();
-            decreaseMeta.displayName(Component.text("Remove 1").color(NamedTextColor.RED));
+            decreaseMeta.displayName(Component.text("Remove 1").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
             decreaseMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
             decreaseMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "decrease_item");
             decreaseItem.setItemMeta(decreaseMeta);
@@ -251,7 +254,7 @@ public class ShopCommand implements CommandExecutor, Listener {
 
             ItemStack decrease8Item = new ItemStack(Material.RED_DYE);
             ItemMeta decrease8Meta = decrease8Item.getItemMeta();
-            decrease8Meta.displayName(Component.text("Remove 8").color(NamedTextColor.RED));
+            decrease8Meta.displayName(Component.text("Remove 8").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
             decrease8Meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
             decrease8Meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "decrease_item_8");
             decrease8Item.setItemMeta(decrease8Meta);
@@ -260,7 +263,7 @@ public class ShopCommand implements CommandExecutor, Listener {
             
             ItemStack decreaseAllItem = new ItemStack(Material.RED_DYE);
             ItemMeta decreaseAllMeta = decreaseAllItem.getItemMeta();
-            decreaseAllMeta.displayName(Component.text("Set to 1").color(NamedTextColor.RED));
+            decreaseAllMeta.displayName(Component.text("Set to 1").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
             decreaseAllMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
             decreaseAllMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "decrease_item_all");
             decreaseAllItem.setItemMeta(decreaseAllMeta);
@@ -269,7 +272,7 @@ public class ShopCommand implements CommandExecutor, Listener {
 
             ItemStack confirmItem = new ItemStack(Material.GREEN_STAINED_GLASS);
             ItemMeta confirmMeta = confirmItem.getItemMeta();
-            confirmMeta.displayName(Component.text("Confirm Transaction").color(NamedTextColor.GREEN));
+            confirmMeta.displayName(Component.text("Confirm Transaction").color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
             confirmMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
             confirmMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "confirm_item");
             confirmItem.setItemMeta(confirmMeta);
@@ -277,7 +280,7 @@ public class ShopCommand implements CommandExecutor, Listener {
 
             ItemStack cancelItem = new ItemStack(Material.RED_STAINED_GLASS);
             ItemMeta cancelMeta = cancelItem.getItemMeta();
-            cancelMeta.displayName(Component.text("Cancel Transaction").color(NamedTextColor.RED));
+            cancelMeta.displayName(Component.text("Cancel Transaction").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
             cancelMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_role"), PersistentDataType.STRING, "transaction_item");
             cancelMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_key"), PersistentDataType.STRING, "cancel_item");
             cancelItem.setItemMeta(cancelMeta);
@@ -303,11 +306,11 @@ public class ShopCommand implements CommandExecutor, Listener {
         
         if (isBuying) {
             return java.util.Collections.singletonList(
-                Component.text("Price: $" + price * item.getAmount()).color(NamedTextColor.RED)
+                Component.text("Price: $" + price * item.getAmount()).color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)
             );
         } else {
             return java.util.Collections.singletonList(
-                Component.text("Price: $" + price * item.getAmount()).color(NamedTextColor.GREEN)
+                Component.text("Price: $" + price * item.getAmount()).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false)
             ); 
         }
     }
