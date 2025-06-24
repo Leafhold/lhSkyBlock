@@ -170,6 +170,31 @@ public class ShopCommand implements CommandExecutor, Listener {
         }
     }
 
+    private void openTransactionMenu(Player player, String shopName, ItemStack item) {
+        Inventory transactionMenu = Bukkit.createInventory(new ShopHolder(), 54, Component.text(shopName));
+        String shopKey = null;
+        if (config.getConfigurationSection("shops") != null) {
+            for (String shop : config.getConfigurationSection("shops").getKeys(false)) {
+                String shopNameKey = config.getString("shops." + shop + ".name", shop);
+                if (shopName.equalsIgnoreCase(shopNameKey)) {
+                    shopKey = shop;
+                    break;
+                }
+            }
+        }
+        if (shopKey == null) {
+            player.sendMessage(Component.text("Could not find the shop named " + shopName + ".").color(NamedTextColor.RED));
+            return;
+        }
+        if (config.contains("shops." + shopKey + ".items." + item.getType().name().toLowerCase())) {
+            transactionMenu.setItem(22, item);
+            player.openInventory(transactionMenu);
+        } else {
+            player.sendMessage(Component.text("There was an error retrieving this item from the shop.").color(NamedTextColor.RED));
+            return;
+        }
+    }
+
     private void reloadConfig() {
         try {
             config.load(new File(plugin.getDataFolder(), "shops.yml"));
@@ -215,7 +240,7 @@ public class ShopCommand implements CommandExecutor, Listener {
                 
                 if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
                     ItemStack item = event.getCurrentItem();
-                    player.sendMessage(Component.text("You clicked on: " + item.getType().name()).color(NamedTextColor.YELLOW));
+                    openTransactionMenu(player, event.getView().getTitle(), item);
                 }
             }
             else if (event.isShiftClick()) {
