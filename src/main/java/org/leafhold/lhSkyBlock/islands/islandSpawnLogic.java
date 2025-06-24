@@ -1,30 +1,30 @@
-package org.leafhold.lhSkyBlock.utils;
+package org.leafhold.lhSkyBlock.islands;
 
 import org.bukkit.Location;
 import org.bukkit.World;
 
 public class islandSpawnLogic {
 
-    public Location islandLocation(int islandIndex, World world, int y, int spacing) {
+    public Location islandLocation(Integer islandIndex, World world, Integer y, Integer spacing) {
 
         if (islandIndex == 0) {
             return new Location(world, 0, y, 0);
         }
 
-        int layer = 1;
-        int totalPrevious = 0;
+        Integer layer = 1;
+        Integer totalPrevious = 0;
 
         while (true) {
-            int islandInLayer = 8 * layer;
+            Integer islandInLayer = 8 * layer;
             if (islandIndex <= totalPrevious + islandInLayer)
                 break;
             totalPrevious += islandInLayer;
             layer++;
         }
         
-        int posInLayer = islandIndex - totalPrevious - 1;
+        Integer posInLayer = islandIndex - totalPrevious - 1;
 
-        int x = 0, z = 0;
+        Integer x = 0, z = 0;
 
         if (posInLayer < 2 * layer) {
             x = layer;
