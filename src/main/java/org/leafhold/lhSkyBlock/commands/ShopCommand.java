@@ -233,6 +233,7 @@ public class ShopCommand implements CommandExecutor, Listener {
                 ));
             }
             itemMeta.getPersistentDataContainer().remove(new NamespacedKey(plugin, "item_role"));
+            itemMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "shop_key"), PersistentDataType.STRING, shopKey);
             item.setItemMeta(itemMeta);
             transactionMenu.setItem(22, item);
 
@@ -398,7 +399,6 @@ public class ShopCommand implements CommandExecutor, Listener {
                                     .get(new NamespacedKey(plugin, "item_buy_price"), PersistentDataType.DOUBLE);
                                 Double sellPrice = item.getItemMeta().getPersistentDataContainer()
                                     .get(new NamespacedKey(plugin, "item_sell_price"), PersistentDataType.DOUBLE);
-
                                 if (event.isLeftClick() && buyPrice != null) {
                                     ItemMeta itemMeta = item.getItemMeta();
                                     itemMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_buying"), PersistentDataType.BOOLEAN, true);
@@ -425,9 +425,11 @@ public class ShopCommand implements CommandExecutor, Listener {
                                         .get(new NamespacedKey(plugin, "item_sell_price"), PersistentDataType.DOUBLE);
 
                                 if (itemKey != null) {
+                                    String shopName =  transactedItem.getItemMeta().getPersistentDataContainer()
+                                        .get(new NamespacedKey(plugin, "shop_key"), PersistentDataType.STRING);
                                     Integer minAmount = isBuying ?
-                                        config.getInt("shops." + event.getView().getTitle() + ".items." + transactedItem.getType().name().toLowerCase() + ".buy.min_amount", 1) :
-                                        config.getInt("shops." + event.getView().getTitle() + ".items." + transactedItem.getType().name().toLowerCase() + ".sell.min_amount", 1);
+                                        config.getInt("shops." + shopName + ".items." + transactedItem.getType().name().toLowerCase() + ".buy.min_amount", 1) :
+                                        config.getInt("shops." + shopName + ".items." + transactedItem.getType().name().toLowerCase() + ".sell.min_amount", 1);
                                     switch (itemKey) {
                                         case "cancel_item":
                                             player.closeInventory();
@@ -507,7 +509,7 @@ public class ShopCommand implements CommandExecutor, Listener {
                                                 if (currentAmount - 8 >= minAmount) {
                                                     transactedItem.setAmount(currentAmount - 8);
                                                 } else {
-                                                    transactedItem.setAmount(1);
+                                                    transactedItem.setAmount(minAmount);
                                                 }
                                                 meta.lore(updateItemPrice(transactedItem));
                                                 transactedItem.setItemMeta(meta);
