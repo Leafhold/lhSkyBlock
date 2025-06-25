@@ -167,6 +167,7 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
             return true;
         }
 
+        player.sendMessage(Component.text("Shop '" + shopName + "' created successfully.").color(NamedTextColor.GREEN));
         return true;
     }
 
@@ -366,6 +367,14 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
             completions.add("create");
             completions.add("delete");
             completions.add("reload");
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("create")) {
+            for (NPC npc : npcRegistry) {
+                completions.add(String.valueOf(npc.getId()));
+            }
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("delete")) {
+            if (config.getConfigurationSection("shops") != null) {
+                completions.addAll(config.getConfigurationSection("shops").getKeys(false));
+            }
         }
 
         return completions;
