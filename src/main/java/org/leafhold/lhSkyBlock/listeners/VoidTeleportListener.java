@@ -30,12 +30,19 @@ public class VoidTeleportListener implements Listener {
                 event.setCancelled(true);
                 World world = player.getWorld();
 
-                if (world != null && world.getName().equalsIgnoreCase(config.getString("main_world"))) {
+                if (world == null) {
+                    plugin.getLogger().warning("Player's world is null, cannot teleport to spawn.");
+                    return;
+                }
+
+                if (world.getName().equalsIgnoreCase(config.getString("main_world"))) {
                     Location loc = world.getSpawnLocation();
                     loc.add(0.5, 0, 0.5);
                     loc.setPitch(0);
                     loc.setYaw(180);
                     player.teleportAsync(loc, TeleportCause.PLUGIN);
+                } else {
+                    //todo get current island spawn location and teleport player there
                 }
             }
         }
