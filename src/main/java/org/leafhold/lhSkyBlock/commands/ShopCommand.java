@@ -108,6 +108,25 @@ public class ShopCommand implements CommandExecutor, Listener {
                 reloadConfig();
                 player.sendMessage(Component.text("Shop configuration reloaded.").color(NamedTextColor.GREEN));
                 return true;
+            case "delete":
+                if (args.length < 2) {
+                    player.sendMessage(Component.text("Please specify a shop name to delete.").color(NamedTextColor.RED));
+                    return true;
+                }
+                String shopName = args[1];
+                if (config.contains("shops." + shopName)) {
+                    config.set("shops." + shopName, null);
+                    try {
+                        config.save(new File(plugin.getDataFolder(), "shops.yml"));
+                        player.sendMessage(Component.text("Shop '" + shopName + "' deleted successfully.").color(NamedTextColor.GREEN));
+                    } catch (Exception e) {
+                        player.sendMessage(Component.text("Failed to delete shop configuration.").color(NamedTextColor.RED));
+                        e.printStackTrace();
+                    }
+                } else {
+                    player.sendMessage(Component.text("This shop does not exist.").color(NamedTextColor.RED));
+                }
+                return true;
         }
 
         return false;
