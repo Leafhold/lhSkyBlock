@@ -10,6 +10,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
 public class VoidTeleportListener implements Listener {
     private final lhSkyBlock plugin;
@@ -33,9 +35,23 @@ public class VoidTeleportListener implements Listener {
                     loc.add(0.5, 1, 0.5);
                     loc.setPitch(0);
                     loc.setYaw(180);
-                    player.teleportAsync(loc);
+                    player.teleportAsync(loc, TeleportCause.PLUGIN);
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        World world = player.getWorld();
+
+        if (world != null && world.getName().equals(config.getString("main_world"))) {
+            Location loc = world.getSpawnLocation();
+            loc.add(0.5, 1, 0.5);
+            loc.setPitch(0);
+            loc.setYaw(180);
+            player.teleportAsync(loc, TeleportCause.PLUGIN);
         }
     }
 }
