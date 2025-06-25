@@ -228,11 +228,17 @@ public class IslandCommand implements CommandExecutor, Listener {
                         case "Create island":
                             //todo create island
                             player.sendMessage(Component.text("Creating your island...").color(NamedTextColor.GREEN));
-                            String islandUUID = DatabaseManager.getInstance().createIsland(
-                                player.getUniqueId().toString(), 
+                            Object[] result = DatabaseManager.getInstance().createIsland(
+                                player.getUniqueId(), 
                                 player.getName() + "'s Island",
                                 "islands"
                             );
+                            UUID islandUUID = null;
+                            if (result != null && result.length > 0) {
+                                islandUUID = (UUID) result[0];
+                            } else {
+                                player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
+                            }
                             if (islandUUID != null) {
                                 player.sendMessage(Component.text("Island created successfully!").color(NamedTextColor.GREEN));
                                 //todo teleport to island

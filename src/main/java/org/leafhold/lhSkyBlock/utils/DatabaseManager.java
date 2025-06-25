@@ -69,7 +69,7 @@ public class DatabaseManager {
             "name TEXT NOT NULL," +
             "world TEXT NOT NULL," +
             "public BOOLEAN NOT NULL DEFAULT false," +
-            "index INT NOT NULL UNIQUE);";
+            "island_index INTEGER NOT NULL UNIQUE AUTO_INCREMENT);";
         String memberTable =
             "CREATE TABLE IF NOT EXISTS island_members (" +
             "island_uuid UUID NOT NULL REFERENCES islands(uuid)," +
@@ -86,54 +86,26 @@ public class DatabaseManager {
         }
     }
 
-    public String createIsland(String ownerUUID, String name, String world) throws SQLException {
+    public Object[] createIsland(UUID ownerUUID, String name, String world) throws SQLException {
         String sql = "SELECT uuid FROM islands WHERE owner = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, ownerUUID);
+            preparedStatement.setString(1, ownerUUID.toString());
             if (preparedStatement.executeQuery().next()) {
                 return null;
             }
         }
+        UUID islandUUID = java.util.UUID.randomUUID();
+        // Integer islandIndex = 0;
 
-        sql = "WITH RECURSIVE seq AS (" + 
-            "SELECT 0 AS n, MAX(`index`) AS max_index FROM island" +
-            "UNION ALL" +
-            "SELECT n + 1, max_index FROM seq WHERE n + 1 <= max_index" +
-            ")" +
-            "SELECT n AS missing_index FROM seq" +
-            "WHERE n NOT IN (SELECT `index` FROM island);";
-
-        Integer islandIndex = -1;
+        sql = "INSERT INTO islands (uuid, owner, name, world) VALUES (?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            var resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                Integer missingIndex = resultSet.getInt("missing_index");
-                Integer maxIndex = resultSet.getInt("max_index");
-                if (missingIndex != null) {
-                    islandIndex = missingIndex;
-                } else {
-                    islandIndex = maxIndex + 1;
-                }
-            }
-        }
-
-        if (islandIndex == -1) {
-            throw new SQLException("Failed to determine island index.");
-        }
-
-
-
-        sql = "INSERT INTO islands (uuid, owner, name, world, index) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            String islandUUID = java.util.UUID.randomUUID().toString();
-            preparedStatement.setString(1, islandUUID);
-            preparedStatement.setString(2, ownerUUID);
+            preparedStatement.setString(1, islandUUID.toString());
+            preparedStatement.setString(2, ownerUUID.toString());
             preparedStatement.setString(3, name);
             preparedStatement.setString(4, world);
-            preparedStatement.setInt(5, islandIndex);
             preparedStatement.executeUpdate();
-            return islandUUID;
         }
+        return new Object[] { islandUUID };
     }
 
     public List<Object> getIslandsByOwner(String ownerUUID) throws SQLException {
@@ -182,10 +154,10 @@ public class DatabaseManager {
         }
     }
 
-    public void toggleVisitors(String islandUUID) throws SQLException {
+    public void toggleVisitors(UUID islandUUID) throws SQLException {
         String sql = "UPDATE islands SET public = NOT public WHERE uuid = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, islandUUID);
+            preparedStatement.setString(1, islandUUID.toString());
             preparedStatement.executeUpdate();
         }
     }
@@ -195,7 +167,7 @@ public class DatabaseManager {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, islandUUID);
             preparedStatement.setString(2, player.getUniqueId().toString());
-            Integer rowsAffected = preparedStatement.executeUpdate();
+            int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected == 0) {
                 return false;
             } else {
