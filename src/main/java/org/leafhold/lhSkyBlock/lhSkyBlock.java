@@ -55,6 +55,7 @@ public final class lhSkyBlock extends JavaPlugin {
 
         ShopCommand shopCommand = new ShopCommand(instance);
         getCommand("shop").setExecutor(shopCommand);
+        getCommand("shop").setTabCompleter(shopCommand);
         getServer().getPluginManager().registerEvents(shopCommand, instance);
     }
 

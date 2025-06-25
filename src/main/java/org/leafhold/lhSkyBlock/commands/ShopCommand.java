@@ -23,6 +23,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.command.TabCompleter;
 
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
@@ -41,9 +42,10 @@ import net.milkbowl.vault.economy.Economy;
 
 import java.util.UUID;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
-public class ShopCommand implements CommandExecutor, Listener {
+public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
     private lhSkyBlock plugin;
     private DatabaseManager databaseManager;
     private FileConfiguration config;
@@ -354,6 +356,19 @@ public class ShopCommand implements CommandExecutor, Listener {
         } catch (Exception e) {
             plugin.getLogger().severe("Failed to reload shops configuration: " + e.getMessage());
         }
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 1) {
+            completions.add("create");
+            completions.add("delete");
+            completions.add("reload");
+        }
+
+        return completions;
     }
 
     @EventHandler
