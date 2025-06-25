@@ -193,115 +193,83 @@ public class IslandCommand implements CommandExecutor, Listener {
         if (event.getView().getTopInventory().getHolder() instanceof IslandMenuHolder) {
             if (event.getClickedInventory() != null && event.getClickedInventory().getHolder() instanceof IslandMenuHolder) {
                 event.setCancelled(true);
+                if (event.getCurrentItem() != null) {
+                    ItemStack item = event.getCurrentItem();
+                    String itemRole = item.getItemMeta().getPersistentDataContainer()
+                        .get(new org.bukkit.NamespacedKey(plugin, "item_role"), PersistentDataType.STRING);
+                    String itemKey = item.getItemMeta().getPersistentDataContainer()
+                        .get(new org.bukkit.NamespacedKey(plugin, "item_key"), PersistentDataType.STRING);
+                    if (itemRole != null) {
+                        UUID islandUUID = UUID.fromString(item.getItemMeta().getPersistentDataContainer()
+                            .get(new org.bukkit.NamespacedKey(plugin, "island_uuid"), PersistentDataType.STRING));
 
-                ItemStack item = event.getCurrentItem();
-                String itemRole = item.getItemMeta().getPersistentDataContainer()
-                    .get(new org.bukkit.NamespacedKey(plugin, "item_role"), PersistentDataType.STRING);
-
-                String inventoryTitle = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title());
-                switch (inventoryTitle) {
-                    case "Manage island":
-                        event.setCancelled(true);
-
-                        if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
-                            
-                            String itemDisplayName = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getCurrentItem().getItemMeta().displayName());
-                            switch (itemDisplayName) {
-                                case "Island home":
-                                    // todo player.teleport(islandMap.get(player.getUniqueId()).add(0.5, 1, 0.5));
-                                    player.sendMessage(Component.text("Teleporting to your island...").color(NamedTextColor.AQUA));
-                                    break;
-
-                                case "Allow visitors":
-                                    // todo toggle access to visitors
-                                    break;
-
-                                case "Members":
-                                    membersGUI(player);
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        break;
-
-                    case "Manage island members":
-                        event.setCancelled(true);
-                        break;
-
-                    case "Create an island":
-                        event.setCancelled(true);
-                        if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
-                            String itemRole = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
-                                .get(new org.bukkit.NamespacedKey("lhskyblock", "item_role"), PersistentDataType.STRING);
-
-                            switch (itemRole) {
-                                case "Create island":
-                                    //todo create island
-                                    player.sendMessage(Component.text("Creating your island...").color(NamedTextColor.GREEN));
-                                    String islandUUID = DatabaseManager.getInstance().createIsland(
-                                        player.getUniqueId().toString(), 
-                                        player.getName() + "'s Island",
-                                        "islands", //todo add world selection logic
-                                        0,
-                                        0
-                                    );
-                                    if (islandUUID != null) {
-                                        player.sendMessage(Component.text("Island created successfully!").color(NamedTextColor.GREEN));
-                                        //todo teleport to island
-                                    }
-                                    else {
-                                        player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
-                                    }
-                                    player.closeInventory();
-                                    break;
-                            }
-                        }
-                        break;
-                    case "Select island":
-                        event.setCancelled(true);
-                        if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
-                            String uuidString = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
-                                .get(new org.bukkit.NamespacedKey("lhskyblock", "uuid"), PersistentDataType.STRING);
-                            if (uuidString != null) {
-                                UUID islandUUID = UUID.fromString(uuidString);
-                                manageIslandGUI(player, islandUUID);
-                            }
-                        }
-                        break;
-                    case "Delete an island":
-                        event.setCancelled(true);
-                        if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
-                            String uuidString = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
-                                .get(new org.bukkit.NamespacedKey("lhskyblock", "uuid"), PersistentDataType.STRING);
-                            if (uuidString != null) {
-                                UUID islandUUID = UUID.fromString(uuidString);
-                                confirmDeleteIslandGUI(player, islandUUID);
-                            }
-                        }
-                        break;
-                    case "Confirm island deletion":
-                        event.setCancelled(true);
-
-                        if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
-                            String uuidString = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
-                                .get(new org.bukkit.NamespacedKey("lhskyblock", "uuid"), PersistentDataType.STRING);
-                            String itemRole = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
-                                .get(new org.bukkit.NamespacedKey("lhskyblock", "item_role"), PersistentDataType.STRING);
-                            if ("Confirm".equals(itemRole) && uuidString != null) {
-                                UUID islandUUID = UUID.fromString(uuidString);
-                                boolean deleted = databaseManager.deleteIsland(player, islandUUID.toString());
-                                if (deleted) {
-                                    player.sendMessage(Component.text("Island deleted successfully.").color(NamedTextColor.GREEN));
-                                } else {
-                                    player.sendMessage(Component.text("Failed to delete island. You might not own this island.").color(NamedTextColor.RED));
+                        switch (itemRole) {
+                            case "manage_island":
+                                switch (itemKey) {
+                                    case "island_home":
+                                        //todo teleport to island home
+                                        player.sendMessage(Component.text("Teleporting to your island...").color(NamedTextColor.AQUA));
+                                        break;
+                                    case "allow_visitors":
+                                        // todo toggle access to visitors
+                                        Boolean allowVisitors = item.getItemMeta().getPersistentDataContainer()
+                                            .get(new org.bukkit.NamespacedKey(plugin, "allow_visitors"), PersistentDataType.BOOLEAN);
+                                        if (allowVisitors != null) {
+                                            allowVisitors = !allowVisitors;
+                                            item.getItemMeta().getPersistentDataContainer()
+                                                .set(new org.bukkit.NamespacedKey(plugin, "allow_visitors"), PersistentDataType.BOOLEAN, allowVisitors);
+                                            String message = allowVisitors ? "Visitors are now allowed on your island." : "Visitors are no longer allowed on your island.";
+                                            databaseManager.toggleVisitors(islandUUID);
+                                        }
+                                        break;
+                                    case "members":
+                                        membersGUI(player, islandUUID);
+                                        break;
                                 }
-                            } else if ("Cancel".equals(itemRole)) {
-                                player.sendMessage(Component.text("Island deletion cancelled.").color(NamedTextColor.YELLOW));
-                            }
-                            player.closeInventory();
+                                break;
+                            case "manage_members":
+                                break;
+                            case "create_island":
+                                //todo create island
+                                UUID newIslandUUID;
+                                Integer islandIndex;
+                                Object[] result = databaseManager.createIsland(
+                                    player.getUniqueId(),
+                                    player.getName() + "'s Island",
+                                    "islands" //todo add world selection logic
+                                );
+                                if (result != null) {
+                                    newIslandUUID = (UUID) result[0];
+                                    // islandIndex = (Integer) result[1];
+                                } else {
+                                    player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
+                                }
+                                player.closeInventory();
+                                break;
+                            case "select_island":
+                                manageIslandGUI(player, islandUUID);
+                                break;
+                            case "delete_island":
+                                confirmDeleteIslandGUI(player, islandUUID);
+                                break;
+                            case "confirm_delete_island":
+                                switch (itemKey) {
+                                    case "confirm":
+                                        Boolean delet4ed = databaseManager.deleteIsland(player, islandUUID.toString());
+                                        if (delet4ed) {
+                                            player.sendMessage(Component.text("Island deleted successfully.").color(NamedTextColor.GREEN));
+                                        } else {
+                                            player.sendMessage(Component.text("Failed to delete island. You might not own this island.").color(NamedTextColor.RED));
+                                        }
+                                        break;
+                                    case "cancel":
+                                        player.sendMessage(Component.text("Island deletion cancelled.").color(NamedTextColor.YELLOW));
+                                        break;
+                                }
+                                player.closeInventory();
+                                break;
                         }
-                        break;
+                    }
                 }
             }
         }
@@ -400,7 +368,7 @@ public class IslandCommand implements CommandExecutor, Listener {
         player.openInventory(islandGUI);
     }  
 
-    private void membersGUI(Player player) {
+    private void membersGUI(Player player, UUID islandUUID) {
         Inventory membersGUI = Bukkit.createInventory(new IslandMenuHolder(), 27, Component.text("Manage island members"));
 
         //todo fetch island members
