@@ -69,8 +69,7 @@ public class DatabaseManager {
             "name TEXT NOT NULL," +
             "world TEXT NOT NULL," +
             "public BOOLEAN NOT NULL DEFAULT false," +
-            "x INTEGER NOT NULL," +
-            "z INTEGER NOT NULL);";
+            "island_index INTEGER NOT NULL UNIQUE AUTO_INCREMENT);";
         String memberTable =
             "CREATE TABLE IF NOT EXISTS island_members (" +
             "island_uuid UUID NOT NULL REFERENCES islands(uuid)," +
@@ -87,26 +86,26 @@ public class DatabaseManager {
         }
     }
 
-    public String createIsland(String ownerUUID, String name, String world, int x, int z) throws SQLException {
+    public Object[] createIsland(UUID ownerUUID, String name, String world) throws SQLException {
         String sql = "SELECT uuid FROM islands WHERE owner = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, ownerUUID);
+            preparedStatement.setString(1, ownerUUID.toString());
             if (preparedStatement.executeQuery().next()) {
                 return null;
             }
         }
-        sql = "INSERT INTO islands (uuid, owner, name, world, x, z) VALUES (?, ?, ?, ?, ?, ?)";
+        UUID islandUUID = java.util.UUID.randomUUID();
+        // Integer islandIndex = 0;
+
+        sql = "INSERT INTO islands (uuid, owner, name, world) VALUES (?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            String islandUUID = java.util.UUID.randomUUID().toString();
-            preparedStatement.setString(1, islandUUID);
-            preparedStatement.setString(2, ownerUUID);
+            preparedStatement.setString(1, islandUUID.toString());
+            preparedStatement.setString(2, ownerUUID.toString());
             preparedStatement.setString(3, name);
             preparedStatement.setString(4, world);
-            preparedStatement.setInt(5, x);
-            preparedStatement.setInt(6, z);
             preparedStatement.executeUpdate();
-            return islandUUID;
         }
+        return new Object[] { islandUUID };
     }
 
     public List<Object> getIslandsByOwner(String ownerUUID) throws SQLException {
@@ -155,10 +154,10 @@ public class DatabaseManager {
         }
     }
 
-    public void toggleVisitors(String islandUUID) throws SQLException {
+    public void toggleVisitors(UUID islandUUID) throws SQLException {
         String sql = "UPDATE islands SET public = NOT public WHERE uuid = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, islandUUID);
+            preparedStatement.setString(1, islandUUID.toString());
             preparedStatement.executeUpdate();
         }
     }

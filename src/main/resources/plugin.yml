@@ -2,12 +2,13 @@ name: lhSkyBlock
 version: '1.0-SNAPSHOT'
 main: org.leafhold.lhSkyBlock.lhSkyBlock
 api-version: '1.21.5'
+load: STARTUP
 depend: [Vault]
-softdepend: [Citizens]
+softdepend: [LuckPerms, Citizens]
 commands:
   island:
     description: Manage your island
-    usage: "/island <create|delete|home|help>"
+    usage: "/island [create|delete|home|help]"
     aliases: [is]
     permission: lhskyblock.island
     permission-message: "You do not have permission to use this command."

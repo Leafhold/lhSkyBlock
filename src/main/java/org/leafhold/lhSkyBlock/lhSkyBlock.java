@@ -1,7 +1,10 @@
 package org.leafhold.lhSkyBlock;
 
+import javax.xml.crypto.Data;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.command.TabCompleter;
 
 import org.leafhold.lhSkyBlock.commands.IslandCommand;
 import org.leafhold.lhSkyBlock.commands.ShopCommand;
@@ -11,6 +14,7 @@ public final class lhSkyBlock extends JavaPlugin {
     private static lhSkyBlock instance;
     private static boolean isSpigot;
     private static boolean isPaper;
+    private static DatabaseManager databaseManager;
 
     //todo add paper specific code
 
@@ -42,15 +46,18 @@ public final class lhSkyBlock extends JavaPlugin {
         saveDefaultConfig();
 
         try {
-            DatabaseManager.getInstance().connect();
+            databaseManager = DatabaseManager.getInstance();
+            databaseManager.connect();
+            
         } catch (Exception e) {
             getLogger().severe("Failed to connect to database: " + e.getMessage());
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
 
-        IslandCommand islandCommand = new IslandCommand();
+        IslandCommand islandCommand = new IslandCommand(instance);
         getCommand("island").setExecutor(islandCommand);
+        getCommand("island").setTabCompleter(islandCommand);
         getServer().getPluginManager().registerEvents(islandCommand, instance);
 
         ShopCommand shopCommand = new ShopCommand(instance);
