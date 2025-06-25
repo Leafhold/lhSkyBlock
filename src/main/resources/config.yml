@@ -6,4 +6,5 @@ db:
   password: skyblock
 
 islands:
+  y-coordinate: 100 # Y-coordinate for island spawn
   spacing: 1000 # Spacing between islands in blocks

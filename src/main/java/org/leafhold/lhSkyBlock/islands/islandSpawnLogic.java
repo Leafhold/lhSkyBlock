@@ -1,11 +1,26 @@
 package org.leafhold.lhSkyBlock.islands;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.leafhold.lhSkyBlock.lhSkyBlock;
+
+import java.io.File;
+
 
 public class islandSpawnLogic {
+    private FileConfiguration config;
+    private final Integer y;
+    private final Integer spacing;
 
-    public Location islandLocation(Integer islandIndex, World world, Integer y, Integer spacing) {
+    public islandSpawnLogic(lhSkyBlock plugin) {
+        this.config = plugin.getConfig();
+        this.y = config.getInt("island.y-coordinate");
+        this.spacing = config.getInt("island.spacing");
+    }
+
+    public Location islandLocation(Integer islandIndex, World world) {
 
         if (islandIndex == 0) {
             return new Location(world, 0, y, 0);
