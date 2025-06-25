@@ -5,7 +5,7 @@ db:
   user: skyblock
   password: skyblock
 
-default_world: world
+main_world: world
 
 islands:
   spacing: 1000 # Spacing between islands in blocks
