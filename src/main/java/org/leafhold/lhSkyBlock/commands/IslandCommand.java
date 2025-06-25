@@ -17,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
+import org.bukkit.command.TabCompleter;
 
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -28,7 +29,7 @@ import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
 
-public class IslandCommand implements CommandExecutor, Listener {
+public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
     private final lhSkyBlock plugin;
     private DatabaseManager databaseManager;
 
@@ -187,6 +188,20 @@ public class IslandCommand implements CommandExecutor, Listener {
         player.sendMessage(message);
     }
     
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 1) {
+            completions.add("help");
+            completions.add("create");
+            completions.add("home");
+            completions.add("delete");
+        }
+
+        return completions;
+    }
+
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) throws SQLException {
         Player player = (Player) event.getWhoClicked();

@@ -4,6 +4,7 @@ import javax.xml.crypto.Data;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.command.TabCompleter;
 
 import org.leafhold.lhSkyBlock.commands.IslandCommand;
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
@@ -55,6 +56,7 @@ public final class lhSkyBlock extends JavaPlugin {
 
         IslandCommand islandCommand = new IslandCommand(instance);
         getCommand("island").setExecutor(islandCommand);
+        getCommand("island").setTabCompleter(islandCommand);
         getServer().getPluginManager().registerEvents(islandCommand, instance);
     }
 
