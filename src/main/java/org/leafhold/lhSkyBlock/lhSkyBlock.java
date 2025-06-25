@@ -1,4 +1,4 @@
-    package org.leafhold.lhSkyBlock;
+package org.leafhold.lhSkyBlock;
 
 import javax.xml.crypto.Data;
 
@@ -7,6 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.command.TabCompleter;
 
 import org.leafhold.lhSkyBlock.commands.IslandCommand;
+import org.leafhold.lhSkyBlock.commands.ShopCommand;
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 
 public final class lhSkyBlock extends JavaPlugin {
@@ -58,6 +59,11 @@ public final class lhSkyBlock extends JavaPlugin {
         getCommand("island").setExecutor(islandCommand);
         getCommand("island").setTabCompleter(islandCommand);
         getServer().getPluginManager().registerEvents(islandCommand, instance);
+
+        ShopCommand shopCommand = new ShopCommand(instance);
+        getCommand("shop").setExecutor(shopCommand);
+        getCommand("shop").setTabCompleter(shopCommand);
+        getServer().getPluginManager().registerEvents(shopCommand, instance);
     }
 
     @Override
