@@ -1,0 +1,17 @@
+# Shop config file
+# Example shop:
+# shops:
+#   minerals:
+#     name: "Minerals Shop"
+#     npc: 1
+#     items:
+#       iron_ingot:
+#         slot: 1
+#         default_amount: 1
+#         buy:
+#           price: 10
+#           min_amount: 1
+#         sell:
+#           price: 5
+#           min_amount: 8
+shops:

@@ -17,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
+import org.bukkit.command.TabCompleter;
 
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -27,10 +28,14 @@ import java.sql.SQLException;
 import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
-public class IslandCommand implements CommandExecutor, Listener {
+public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
     private final lhSkyBlock plugin;
     private DatabaseManager databaseManager;
+    private final Map<UUID, Long> visitorToggleCooldown = new HashMap<>();
+    private static final long COOLDOWN_TIME = 5000;
 
     public IslandCommand(lhSkyBlock plugin) {
         this.plugin = plugin;
@@ -169,7 +174,7 @@ public class IslandCommand implements CommandExecutor, Listener {
                 .color(NamedTextColor.YELLOW)
                 .clickEvent(ClickEvent.runCommand("/island delete"))
                 )
-            .append(null, Component.text(" - Delete your island."))
+            .append(Component.text(" - Delete your island."))
             .append(Component.newline()
             .append(
                 Component.text("/island home")
@@ -187,6 +192,20 @@ public class IslandCommand implements CommandExecutor, Listener {
         player.sendMessage(message);
     }
     
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 1) {
+            completions.add("help");
+            completions.add("create");
+            completions.add("home");
+            completions.add("delete");
+        }
+
+        return completions;
+    }
+
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) throws SQLException {
         Player player = (Player) event.getWhoClicked();
@@ -200,7 +219,6 @@ public class IslandCommand implements CommandExecutor, Listener {
                     String itemKey = item.getItemMeta().getPersistentDataContainer()
                         .get(new org.bukkit.NamespacedKey(plugin, "item_key"), PersistentDataType.STRING);
                     if (itemRole != null) {
-                        // Check if island_uuid exists before trying to parse it
                         String islandUUIDString = item.getItemMeta().getPersistentDataContainer()
                             .get(new org.bukkit.NamespacedKey(plugin, "island_uuid"), PersistentDataType.STRING);
                         
@@ -221,15 +239,73 @@ public class IslandCommand implements CommandExecutor, Listener {
                                         player.sendMessage(Component.text("Teleporting to your island...").color(NamedTextColor.AQUA));
                                         break;
                                     case "allow_visitors":
-                                        // todo toggle access to visitors
-                                        Boolean allowVisitors = item.getItemMeta().getPersistentDataContainer()
-                                            .get(new org.bukkit.NamespacedKey(plugin, "allow_visitors"), PersistentDataType.BOOLEAN);
-                                        if (allowVisitors != null) {
-                                            allowVisitors = !allowVisitors;
-                                            item.getItemMeta().getPersistentDataContainer()
-                                                .set(new org.bukkit.NamespacedKey(plugin, "allow_visitors"), PersistentDataType.BOOLEAN, allowVisitors);
-                                            String message = allowVisitors ? "Visitors are now allowed on your island." : "Visitors are no longer allowed on your island.";
+                                        long currentTime = System.currentTimeMillis();
+                                        if (visitorToggleCooldown.containsKey(player.getUniqueId())) {
+                                            long lastUsed = visitorToggleCooldown.get(player.getUniqueId());
+                                            if (currentTime - lastUsed < COOLDOWN_TIME) {
+                                                long remainingTime = (COOLDOWN_TIME - (currentTime - lastUsed)) / 1000;
+                                                player.sendMessage(Component.text("Please wait " + remainingTime + " seconds before toggling again.")
+                                                    .color(NamedTextColor.RED));
+                                                return;
+                                            }
+                                        }
+                                        
+                                        visitorToggleCooldown.put(player.getUniqueId(), currentTime);
+                                        
+                                        try {
+                                            boolean currentVisitorState = databaseManager.visitorsAllowed(islandUUID.toString());
                                             databaseManager.toggleVisitors(islandUUID);
+                                            
+                                            String message = currentVisitorState ? 
+                                                "Visitors are no longer allowed on your island." : 
+                                                "Visitors are now allowed on your island.";
+                                            
+                                            player.sendMessage(Component.text(message).color(NamedTextColor.GREEN));
+                                            
+                                            ItemStack updatedVisitors;
+                                            ItemMeta updatedVisitorsMeta;
+                                            
+                                            if (currentVisitorState) {
+                                                updatedVisitors = new ItemStack(Material.RED_CONCRETE);
+                                                updatedVisitorsMeta = updatedVisitors.getItemMeta();
+                                                updatedVisitorsMeta.displayName(Component.text("Allow visitors").color(NamedTextColor.WHITE));
+                                                updatedVisitorsMeta.lore(java.util.Arrays.asList(
+                                                    Component.text("Off").color(NamedTextColor.RED),
+                                                    Component.text("Click to toggle access to visitors.").color(NamedTextColor.GRAY)
+                                                ));
+                                            } else {
+                                                updatedVisitors = new ItemStack(Material.GREEN_CONCRETE);
+                                                updatedVisitorsMeta = updatedVisitors.getItemMeta();
+                                                updatedVisitorsMeta.displayName(Component.text("Allow visitors").color(NamedTextColor.WHITE));
+                                                updatedVisitorsMeta.lore(java.util.Arrays.asList(
+                                                    Component.text("On").color(NamedTextColor.GREEN),
+                                                    Component.text("Click to toggle access to visitors.").color(NamedTextColor.GRAY)
+                                                ));
+                                            }
+                                            
+                                            updatedVisitorsMeta.getPersistentDataContainer().set(
+                                                new org.bukkit.NamespacedKey(plugin, "item_role"),
+                                                PersistentDataType.STRING,
+                                                "manage_island"
+                                            );
+                                            updatedVisitorsMeta.getPersistentDataContainer().set(
+                                                new org.bukkit.NamespacedKey(plugin, "item_key"),
+                                                PersistentDataType.STRING,
+                                                "allow_visitors"
+                                            );
+                                            updatedVisitorsMeta.getPersistentDataContainer().set(
+                                                new org.bukkit.NamespacedKey(plugin, "island_uuid"),
+                                                PersistentDataType.STRING,
+                                                islandUUID.toString()
+                                            );
+                                            
+                                            updatedVisitors.setItemMeta(updatedVisitorsMeta);
+                                            
+                                            event.getInventory().setItem(15, updatedVisitors);
+                                            
+                                        } catch (SQLException e) {
+                                            e.printStackTrace();
+                                            player.sendMessage(Component.text("An error occurred while updating island visitors.").color(NamedTextColor.RED));
                                         }
                                         break;
                                     case "members":
