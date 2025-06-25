@@ -2,6 +2,8 @@ package org.leafhold.lhSkyBlock.listeners;
 
 import org.leafhold.lhSkyBlock.lhSkyBlock;
 
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,7 +23,9 @@ public class VoidTeleportListener implements Listener {
             Player player = (Player) event.getEntity();
             if (event.getCause() == DamageCause.VOID) {
                 event.setCancelled(true);
-                player.teleport(player.getWorld().getSpawnLocation());
+                World world = player.getWorld();
+                Location loc = world.getSpawnLocation();
+                player.teleport(loc);
             }
         }
     }
