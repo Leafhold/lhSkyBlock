@@ -53,11 +53,6 @@ public class ShopCommand implements CommandExecutor, Listener {
     public ShopCommand(lhSkyBlock plugin) {
         this.plugin = plugin;
         this.databaseManager = DatabaseManager.getInstance();
-        try {
-            this.databaseManager.connect();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         File configFile = new File(plugin.getDataFolder(), "shops.yml");
         if (!configFile.exists()) {
