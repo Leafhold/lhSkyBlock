@@ -27,7 +27,7 @@ import org.bukkit.command.TabCompleter;
 
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
-import org.leafhold.lhSkyBlock.shop.ShopHolder;
+import org.leafhold.lhSkyBlock.shops.ShopHolder;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPCRegistry;

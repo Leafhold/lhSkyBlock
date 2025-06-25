@@ -1,4 +1,4 @@
-package org.leafhold.lhSkyBlock.shop;
+package org.leafhold.lhSkyBlock.shops;
 
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
