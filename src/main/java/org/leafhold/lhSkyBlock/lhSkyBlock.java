@@ -1,5 +1,7 @@
     package org.leafhold.lhSkyBlock;
 
+import javax.xml.crypto.Data;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -10,6 +12,7 @@ public final class lhSkyBlock extends JavaPlugin {
     private static lhSkyBlock instance;
     private static boolean isSpigot;
     private static boolean isPaper;
+    private static DatabaseManager databaseManager;
 
     //todo add paper specific code
 
@@ -41,7 +44,9 @@ public final class lhSkyBlock extends JavaPlugin {
         saveDefaultConfig();
 
         try {
-            DatabaseManager.getInstance().connect();
+            databaseManager = DatabaseManager.getInstance();
+            databaseManager.connect();
+            
         } catch (Exception e) {
             getLogger().severe("Failed to connect to database: " + e.getMessage());
             Bukkit.getPluginManager().disablePlugin(this);

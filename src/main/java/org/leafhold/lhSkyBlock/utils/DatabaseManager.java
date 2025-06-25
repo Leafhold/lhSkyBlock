@@ -69,8 +69,7 @@ public class DatabaseManager {
             "name TEXT NOT NULL," +
             "world TEXT NOT NULL," +
             "public BOOLEAN NOT NULL DEFAULT false," +
-            "x INTEGER NOT NULL," +
-            "z INTEGER NOT NULL);";
+            "island_index INTEGER NOT NULL UNIQUE AUTO_INCREMENT);";
         String memberTable =
             "CREATE TABLE IF NOT EXISTS island_members (" +
             "island_uuid UUID NOT NULL REFERENCES islands(uuid)," +
@@ -98,7 +97,7 @@ public class DatabaseManager {
         UUID islandUUID = java.util.UUID.randomUUID();
         // Integer islandIndex = 0;
 
-        sql = "INSERT INTO islands (uuid, owner, name, world) VALUES (?, ?, ?, ?, ?)";
+        sql = "INSERT INTO islands (uuid, owner, name, world) VALUES (?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, islandUUID.toString());
             preparedStatement.setString(2, ownerUUID.toString());
