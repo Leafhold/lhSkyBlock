@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import org.leafhold.lhSkyBlock.commands.IslandCommand;
+import org.leafhold.lhSkyBlock.listeners.VoidTeleportListener;
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 
 public final class lhSkyBlock extends JavaPlugin {
@@ -56,6 +57,7 @@ public final class lhSkyBlock extends JavaPlugin {
         IslandCommand islandCommand = new IslandCommand(instance);
         getCommand("island").setExecutor(islandCommand);
         getServer().getPluginManager().registerEvents(islandCommand, instance);
+        getServer().getPluginManager().registerEvents(new VoidTeleportListener(instance), instance);
     }
 
     @Override
