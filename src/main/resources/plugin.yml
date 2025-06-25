@@ -4,7 +4,7 @@ main: org.leafhold.lhSkyBlock.lhSkyBlock
 api-version: '1.21.5'
 load: STARTUP
 depend: [Vault]
-softdepend: [LuckPerms, Citizens]
+softdepend: [LuckPerms, Citizens, WorldEdit, WorldGuard]
 commands:
   island:
     description: Manage your island

@@ -1,6 +1,7 @@
 package org.leafhold.lhSkyBlock.commands;
 
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
+import org.leafhold.lhSkyBlock.lhSkyBlock;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -16,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
+import org.bukkit.plugin.Plugin;
 
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -28,7 +30,13 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class IslandCommand implements CommandExecutor, Listener {
+    private static Plugin plugin;
     private DatabaseManager databaseManager;
+
+    public IslandCommand(Plugin lhSkyBlock) {
+        this.plugin = lhSkyBlock;
+        this.databaseManager = DatabaseManager.getInstance();
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -241,7 +249,9 @@ public class IslandCommand implements CommandExecutor, Listener {
                             }
                             if (islandUUID != null) {
                                 player.sendMessage(Component.text("Island created successfully!").color(NamedTextColor.GREEN));
-                                //todo teleport to island
+
+
+
                             }
                             else {
                                 player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
