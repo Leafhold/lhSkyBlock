@@ -11,6 +11,8 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.function.operation.Operation;
+import com.sk89q.worldedit.EditSession;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,14 +20,16 @@ import java.io.IOException;
 
 
 public class IslandSpawnLogic {
+    private static lhSkyBlock plugin;
     private FileConfiguration config;
-    private final Integer y;
-    private final Integer spacing;
+    private static Integer y;
+    private static Integer spacing;
 
     public IslandSpawnLogic(lhSkyBlock plugin) {
-        this.config = plugin.getConfig();
-        this.y = config.getInt("island.y-coordinate");
-        this.spacing = config.getInt("island.spacing");
+        this.plugin = plugin;
+        config = plugin.getConfig();
+        y = config.getInt("island.y-coordinate");
+        spacing = config.getInt("island.spacing");
     }
 
     public Location IslandLocation(Integer islandIndex, World world) {
@@ -67,7 +71,7 @@ public class IslandSpawnLogic {
     }
 
     public boolean pasteSchematic(String schematicName, Location location) {
-        File schematicFile = new File(lhSkyBlock.getInstance().getDataFolder(), "schematics/" + schematicName);
+        File schematicFile = new File(plugin.getDataFolder(), "schematics/" + schematicName);
         if (!schematicFile.exists()) {
             lhSkyBlock.getInstance().getLogger().severe("Schematic file " + schematicName + " does not exist!");
             return false;
@@ -89,8 +93,8 @@ public class IslandSpawnLogic {
             return false;
         }
         try {
-            com.sk89q.worldedit.EditSession editSession = com.sk89q.worldedit.WorldEdit.getInstance().newEditSession(com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(location.getWorld()));
-            com.sk89q.worldedit.function.operation.Operation operation = new com.sk89q.worldedit.session.ClipboardHolder(clipboard)
+            EditSession editSession = com.sk89q.worldedit.WorldEdit.getInstance().newEditSession(com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(location.getWorld()));
+            Operation operation = new com.sk89q.worldedit.session.ClipboardHolder(clipboard)
                 .createPaste(editSession)
                 .to(com.sk89q.worldedit.math.BlockVector3.at(location.getBlockX(), location.getBlockY(), location.getBlockZ()))
                 .build();

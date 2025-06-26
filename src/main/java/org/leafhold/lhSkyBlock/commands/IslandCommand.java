@@ -2,6 +2,7 @@ package org.leafhold.lhSkyBlock.commands;
 
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
+import org.leafhold.lhSkyBlock.islands.IslandSpawnLogic;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -18,6 +19,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.WorldCreator;
+import org.bukkit.World;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -28,14 +32,19 @@ import java.sql.SQLException;
 import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
+import java.io.File;
 
 public class IslandCommand implements CommandExecutor, Listener {
     private static Plugin plugin;
+    private FileConfiguration config;
     private DatabaseManager databaseManager;
+    private static IslandSpawnLogic islandSpawnLogic;
 
     public IslandCommand(Plugin lhSkyBlock) {
         this.plugin = lhSkyBlock;
-        this.databaseManager = DatabaseManager.getInstance();
+        config = plugin.getConfig();
+        databaseManager = DatabaseManager.getInstance();
+        islandSpawnLogic = new IslandSpawnLogic((lhSkyBlock) plugin);
     }
 
     @Override
@@ -224,6 +233,7 @@ public class IslandCommand implements CommandExecutor, Listener {
 
             case "Manage island members":
                 event.setCancelled(true);
+                //todo manage members
                 break;
 
             case "Create an island":
@@ -234,7 +244,6 @@ public class IslandCommand implements CommandExecutor, Listener {
 
                     switch (itemRole) {
                         case "Create island":
-                            //todo create island
                             player.sendMessage(Component.text("Creating your island...").color(NamedTextColor.GREEN));
                             Object[] result = DatabaseManager.getInstance().createIsland(
                                 player.getUniqueId(), 
@@ -242,19 +251,45 @@ public class IslandCommand implements CommandExecutor, Listener {
                                 "islands"
                             );
                             UUID islandUUID = null;
-                            if (result != null && result.length > 0) {
-                                islandUUID = (UUID) result[0];
-                            } else {
-                                player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
-                            }
+
                             if (islandUUID != null) {
-                                player.sendMessage(Component.text("Island created successfully!").color(NamedTextColor.GREEN));
+                                if (result != null && result.length > 0) {
+                                    islandUUID = (UUID) result[0];
+                                } else {
+                                    player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
+                                }
 
+                                File schemLocation = new File(plugin.getDataFolder(), "schematics");
+                                if (!schemLocation.exists() || !schemLocation.isDirectory()) {
+                                    player.sendMessage(Component.text("Schematic folder not found. Please contact an admin.").color(NamedTextColor.RED));
+                                    return;
+                                }
+                                
+                                if (schemLocation.listFiles().length == 0) {
+                                    player.sendMessage(Component.text("No schematics found in the schematics folder. Please contact an admin.").color(NamedTextColor.RED));
+                                    return;
+                                }
 
+                                World islands = Bukkit.getWorld("islands");
+                                if (islands == null) {
+                                    Bukkit.createWorld(new WorldCreator("islands"));
+                                    islands = Bukkit.getWorld("islands");
+                                    if (islands == null) {
+                                        player.sendMessage(Component.text("Failed to create or load the islands world. Please contact an admin.").color(NamedTextColor.RED));
+                                        return;
+                                    }
+                                }
 
-                            }
-                            else {
-                                player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
+                                Location islandLocation = new Location(Bukkit.getWorld("islands"), 0, 100, 0);
+                                
+                                String schematicName = config.getString("islands.default-island.schematic", "default_island.schem");
+                                boolean pasted = islandSpawnLogic.pasteSchematic(schematicName, islandLocation);
+                                if (pasted) {
+                                    player.sendMessage(Component.text("Island created successfully!").color(NamedTextColor.GREEN));
+                                    player.teleport(islandLocation);
+                                } else {
+                                    player.sendMessage(Component.text("Failed to paste the island schematic. Please contact an admin.").color(NamedTextColor.RED));
+                                }
                             }
                             player.closeInventory();
                             break;
