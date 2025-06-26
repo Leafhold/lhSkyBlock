@@ -8,6 +8,7 @@ import org.bukkit.command.TabCompleter;
 
 import org.leafhold.lhSkyBlock.commands.IslandCommand;
 import org.leafhold.lhSkyBlock.listeners.VoidTeleportListener;
+import org.leafhold.lhSkyBlock.shops.SignShop;
 import org.leafhold.lhSkyBlock.commands.ShopCommand;
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 
@@ -62,11 +63,16 @@ public final class lhSkyBlock extends JavaPlugin {
         getServer().getPluginManager().registerEvents(islandCommand, instance);
       
         getServer().getPluginManager().registerEvents(new VoidTeleportListener(instance), instance);
+        getServer().getPluginManager().registerEvents(new SignShop(instance), instance);
 
-        ShopCommand shopCommand = new ShopCommand(instance);
-        getCommand("shop").setExecutor(shopCommand);
-        getCommand("shop").setTabCompleter(shopCommand);
-        getServer().getPluginManager().registerEvents(shopCommand, instance);
+        if (Bukkit.getPluginManager().isPluginEnabled("Citizens")) {
+            ShopCommand shopCommand = new ShopCommand(instance);
+            getCommand("shop").setExecutor(shopCommand);
+            getCommand("shop").setTabCompleter(shopCommand);
+            getServer().getPluginManager().registerEvents(shopCommand, instance);
+        } else {
+            getLogger().warning("Citizens not found - shop command disabled");
+        }
     }
 
     @Override
