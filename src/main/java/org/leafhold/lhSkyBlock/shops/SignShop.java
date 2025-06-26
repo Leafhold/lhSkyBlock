@@ -63,23 +63,14 @@ public class SignShop implements Listener {
         Player player = event.getPlayer();
         Sign sign = (Sign) event.getBlock().getState();
 
-        Directional directional = null;
-        if (sign.getBlockData() instanceof Directional) {
-            directional = (Directional) sign.getBlockData();
-            if (!directional.getFacing().equals(BlockFace.DOWN)) {
-                return;
-            }
+        BlockFace attachedFace = BlockFace.DOWN;
+        if (event.getBlock().getBlockData() instanceof Directional) {
+            attachedFace = ((Directional) event.getBlock().getBlockData()).getFacing().getOppositeFace();
         }
-        if (directional == null) {
-            player.sendMessage(Component.text("This sign must be placed on a block").color(NamedTextColor.RED));
-            event.setCancelled(true);
-            return;
-        }
-        player.sendMessage(Component.text(sign.getBlock().getRelative(directional.getFacing().getOppositeFace()).getType().toString()).color(NamedTextColor.GREEN));
-        if (sign.getBlock().getRelative(0, -1, 0).getType().toString().equalsIgnoreCase("chest") ||
-            sign.getBlock().getRelative(0, -1, 0).getType().toString().contains("double_chest")) {
+        Block relativeBlock = event.getBlock().getRelative(attachedFace);
 
-        }
+        if (attachedFace == BlockFace.DOWN || attachedFace == BlockFace.UP) return;
+        if (relativeBlock == null || !relativeBlock.getType().toString().toLowerCase().contains("chest")) return;
 
         String[] lines = event.getLines();
 
@@ -98,7 +89,7 @@ public class SignShop implements Listener {
         }
         Integer amount;
         Double price;
-        
+
         try {
             amount = Integer.parseInt(lines[1]);
             price = Double.parseDouble(lines[2]);
