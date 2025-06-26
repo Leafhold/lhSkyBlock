@@ -5,6 +5,8 @@ db:
   user: skyblock
   password: skyblock
 
+main_world: world
+
 islands:
   default-island:
     schematic: default_island.schematic # Default island schematic file
