@@ -28,6 +28,10 @@ repositories {
         name = "FancyInnovations"
         url = "https://repo.fancyinnovations.com/releases"
     }
+    maven {
+        name = "enginehub"
+        url = "https://repo.enginehub.org/repo/"
+    }
 }
 
 dependencies {
@@ -39,6 +43,7 @@ dependencies {
         exclude group: "org.bukkit", module: "bukkit"
     }
     compileOnly("de.oliver:FancyHolograms:2.5.0")
+    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.3.14")
 }
 
 tasks {

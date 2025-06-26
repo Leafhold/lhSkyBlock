@@ -3,6 +3,7 @@ package org.leafhold.lhSkyBlock.commands;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
 import org.leafhold.lhSkyBlock.islands.IslandMenuHolder;
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
+import org.leafhold.lhSkyBlock.islands.IslandSpawnLogic;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -18,6 +19,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -32,14 +36,18 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
-    private final lhSkyBlock plugin;
+    private static lhSkyBlock plugin;
+    private static FileConfiguration config;
     private DatabaseManager databaseManager;
     private final Map<UUID, Long> visitorToggleCooldown = new HashMap<>();
     private static final long COOLDOWN_TIME = 5000;
+    private static IslandSpawnLogic islandSpawnLogic;
 
     public IslandCommand(lhSkyBlock plugin) {
         this.plugin = plugin;
-        this.databaseManager = DatabaseManager.getInstance();
+        config = plugin.getConfig();
+        databaseManager = DatabaseManager.getInstance();
+        islandSpawnLogic = new IslandSpawnLogic(plugin);
     }
 
     @Override
@@ -328,6 +336,14 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                 if (result != null) {
                                     newIslandUUID = (UUID) result[0];
                                     // islandIndex = (Integer) result[1];
+                                    World islandWorld = Bukkit.getWorld("islands");
+                                    if (islandWorld == null) {
+                                        player.sendMessage(Component.text("Island world not found. Please check your configuration.").color(NamedTextColor.RED));
+                                        return;
+                                    }
+                                    Location islandLocation = new Location(islandWorld, 0, 100, 0); //todo set actual island location
+
+                                    player.teleport(islandLocation);
                                     player.sendMessage(Component.text("Island created successfully!").color(NamedTextColor.GREEN));
                                 } else {
                                     player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
