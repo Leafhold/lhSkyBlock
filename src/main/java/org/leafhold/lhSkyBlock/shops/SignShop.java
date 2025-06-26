@@ -1,13 +1,15 @@
 package org.leafhold.lhSkyBlock.shops;
 
+import org.leafhold.lhSkyBlock.lhSkyBlock;
+
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.leafhold.lhSkyBlock.lhSkyBlock;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.Directional;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Display.Billboard;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -16,10 +18,18 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 
 import net.citizensnpcs.api.persistence.Persist;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.md_5.bungee.api.chat.hover.content.Item;
+import de.oliver.fancyholograms.api.FancyHologramsPlugin;
+import de.oliver.fancyholograms.api.HologramManager;
+import de.oliver.fancyholograms.api.data.ItemHologramData;
+import de.oliver.fancyholograms.api.data.TextHologramData;
+import de.oliver.fancyholograms.api.hologram.Hologram;
 
 import java.util.UUID;
 
@@ -103,11 +113,13 @@ public class SignShop implements Listener {
             event.setCancelled(true);
             return;
         }
-        event.setLine(0, sell ? "Sell" : "Buy");
-        event.setLine(1, String.valueOf(amount));
-        event.setLine(2, String.format("$%.2f", price));
-        event.setLine(3, player.getName());
+        event.line(0, Component.text(sell ? "Selling" : "Buying").color(NamedTextColor.WHITE));
+        event.line(1, Component.text(amount).color(NamedTextColor.WHITE));
+        event.line(2, Component.text(String.format("$%.2f", price)).color(NamedTextColor.DARK_GREEN));
+        event.line(3, Component.text(player.getName()).color(NamedTextColor.WHITE));
+
         PersistentDataContainer data = sign.getPersistentDataContainer();
+        data.set(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING, "shop-" + UUID.randomUUID().toString());
         data.set(new NamespacedKey(plugin, "shop_type"), PersistentDataType.STRING, sell ? "sell" : "buy");
         data.set(new NamespacedKey(plugin, "item_amount"), PersistentDataType.INTEGER, amount);
         data.set(new NamespacedKey(plugin, "item_price"), PersistentDataType.DOUBLE, price);
@@ -124,6 +136,7 @@ public class SignShop implements Listener {
         PersistentDataContainer data = sign.getPersistentDataContainer();
 
         if (isShopItemSetup(sign)) {
+            String shopUUID = data.get(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING);
             String shopType = data.get(new NamespacedKey(plugin, "shop_type"), PersistentDataType.STRING);
             int amount = data.get(new NamespacedKey(plugin, "item_amount"), PersistentDataType.INTEGER);
             double price = data.get(new NamespacedKey(plugin, "item_price"), PersistentDataType.DOUBLE);
@@ -141,9 +154,75 @@ public class SignShop implements Listener {
                     player.sendMessage(Component.text("You must hold a valid item to set up the shop").color(NamedTextColor.RED));
                     return;
                 }
+                BlockFace attachedFace = BlockFace.DOWN;
+                if (sign.getBlock().getBlockData() instanceof Directional) {
+                    attachedFace = ((Directional) sign.getBlock().getBlockData()).getFacing().getOppositeFace();
+                }
+                Block chestBlock = sign.getBlock().getRelative(attachedFace);
+                Location chestLocation = chestBlock.getLocation();
+                Location location = chestBlock.getLocation().add(0, 1.25, 0);
+                if (chestLocation.getX() > 0) location.add(-0.5, 0, 0);
+                else location.add(0.5, 0, 0);
+                if (chestLocation.getZ() > 0) location.add(0, 0, -0.5);
+                else location.add(0, 0, 0.5);
+
+                
+                String shopUUID = data.get(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING);
+                ItemHologramData hologramData = new ItemHologramData(shopUUID, location);
+                hologramData.setItemStack(item);
+                hologramData.setScale(new org.joml.Vector3f(0.5f, 0.5f, 0.5f));
+                hologramData.setBillboard(Billboard.FIXED);
+                
+                FancyHologramsPlugin fancyHologramsPlugin = (FancyHologramsPlugin) Bukkit.getPluginManager().getPlugin("FancyHolograms");
+                HologramManager manager = fancyHologramsPlugin.getHologramManager();
+                Hologram hologram = manager.create(hologramData);
+                manager.addHologram(hologram);
+
                 data.set(new NamespacedKey(plugin, "item"), PersistentDataType.BYTE_ARRAY, item.serializeAsBytes());
                 sign.update();
                 player.sendMessage(Component.text("Shop item set to " + item.getType().name()).color(NamedTextColor.GREEN));
+            } else {
+                player.sendMessage(Component.text("This shop is not set up yet.").color(NamedTextColor.RED));
+            }
+        }
+    }
+
+    @EventHandler
+    public void onBlockBreak(org.bukkit.event.block.BlockBreakEvent event) {
+        Block block = event.getBlock();
+        if (isSignShop(block)) {
+            Sign sign = (Sign) block.getState();
+            PersistentDataContainer data = sign.getPersistentDataContainer();
+            String shopUUID = data.get(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING);
+            
+            FancyHologramsPlugin fancyHologramsPlugin = (FancyHologramsPlugin) Bukkit.getPluginManager().getPlugin("FancyHolograms");
+            HologramManager manager = fancyHologramsPlugin.getHologramManager();
+            Hologram hologram = manager.getHologram(shopUUID).orElse(null);
+            if (hologram != null) {
+                manager.removeHologram(hologram);
+            }
+            return;
+        }
+        for (BlockFace face : BlockFace.values()) {
+            Block relativeBlock = block.getRelative(face);
+            if (isSignShop(relativeBlock)) {
+                Sign sign = (Sign) relativeBlock.getState();
+                if (sign.getBlockData() instanceof Directional directional) {
+                    BlockFace attachedFace = directional.getFacing().getOppositeFace();
+                    Block attachedBlock = relativeBlock.getRelative(attachedFace);
+                    if (!attachedBlock.equals(block)) continue;
+                } else {
+                    continue;
+                }
+                PersistentDataContainer data = sign.getPersistentDataContainer();
+                String shopUUID = data.get(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING);
+                
+                FancyHologramsPlugin fancyHologramsPlugin = (FancyHologramsPlugin) Bukkit.getPluginManager().getPlugin("FancyHolograms");
+                HologramManager manager = fancyHologramsPlugin.getHologramManager();
+                Hologram hologram = manager.getHologram(shopUUID).orElse(null);
+                if (hologram != null) {
+                    manager.removeHologram(hologram);
+                }
             }
         }
     }
