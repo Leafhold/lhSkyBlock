@@ -3,6 +3,8 @@ package org.leafhold.lhSkyBlock.commands;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
 import org.leafhold.lhSkyBlock.islands.IslandMenuHolder;
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
+import org.leafhold.lhSkyBlock.lhSkyBlock;
+import org.leafhold.lhSkyBlock.islands.IslandSpawnLogic;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -10,6 +12,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -17,6 +20,10 @@ import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.WorldCreator;
+import org.bukkit.World;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.command.TabCompleter;
 
 import net.kyori.adventure.text.TextComponent;
@@ -28,18 +35,23 @@ import java.sql.SQLException;
 import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
+import java.io.File;
 import java.util.Map;
 import java.util.HashMap;
 
 public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
-    private final lhSkyBlock plugin;
+    private static lhSkyBlock plugin;
+    private FileConfiguration config;
     private DatabaseManager databaseManager;
-    private final Map<UUID, Long> visitorToggleCooldown = new HashMap<>();
+    private Map<UUID, Long> visitorToggleCooldown = new HashMap<>();
     private static final long COOLDOWN_TIME = 5000;
+    private static IslandSpawnLogic islandSpawnLogic;
 
-    public IslandCommand(lhSkyBlock plugin) {
-        this.plugin = plugin;
-        this.databaseManager = DatabaseManager.getInstance();
+    public IslandCommand(lhSkyBlock lhSkyBlock) {
+        this.plugin = lhSkyBlock;
+        config = plugin.getConfig();
+        databaseManager = DatabaseManager.getInstance();
+        islandSpawnLogic = new IslandSpawnLogic((lhSkyBlock) plugin);
     }
 
     @Override
@@ -209,8 +221,122 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) throws SQLException {
         Player player = (Player) event.getWhoClicked();
-        if (event.getView().getTopInventory().getHolder() instanceof IslandMenuHolder) {
-            if (event.getClickedInventory() != null && event.getClickedInventory().getHolder() instanceof IslandMenuHolder) {
+
+        String inventoryTitle = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+        switch (inventoryTitle) {
+            case "Manage island":
+                event.setCancelled(true);
+
+                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
+                    
+                    String itemDisplayName = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getCurrentItem().getItemMeta().displayName());
+                    switch (itemDisplayName) {
+                        case "Island home":
+                            // todo player.teleport(islandMap.get(player.getUniqueId()).add(0.5, 1, 0.5));
+                            player.sendMessage(Component.text("Teleporting to your island...").color(NamedTextColor.AQUA));
+                            break;
+
+                        case "Allow visitors":
+                            // todo toggle access to visitors
+                            break;
+
+                        case "Members":
+                            membersGUI(player);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                break;
+
+            case "Manage island members":
+                event.setCancelled(true);
+                //todo manage members
+                break;
+
+            case "Create an island":
+                event.setCancelled(true);
+                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
+                    String itemRole = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
+                        .get(new org.bukkit.NamespacedKey("lhskyblock", "item_role"), PersistentDataType.STRING);
+
+                    switch (itemRole) {
+                        case "Create island":
+                            player.sendMessage(Component.text("Creating your island...").color(NamedTextColor.GREEN));
+                            Object[] result = DatabaseManager.getInstance().createIsland(
+                                player.getUniqueId(), 
+                                player.getName() + "'s Island",
+                                "islands"
+                            );
+                            UUID islandUUID = null;
+
+                            if (islandUUID != null) {
+                                if (result != null && result.length > 0) {
+                                    islandUUID = (UUID) result[0];
+                                } else {
+                                    player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
+                                }
+
+                                File schemLocation = new File(plugin.getDataFolder(), "schematics");
+                                if (!schemLocation.exists() || !schemLocation.isDirectory()) {
+                                    player.sendMessage(Component.text("Schematic folder not found. Please contact an admin.").color(NamedTextColor.RED));
+                                    return;
+                                }
+                                
+                                if (schemLocation.listFiles().length == 0) {
+                                    player.sendMessage(Component.text("No schematics found in the schematics folder. Please contact an admin.").color(NamedTextColor.RED));
+                                    return;
+                                }
+
+                                World islands = Bukkit.getWorld("islands");
+                                if (islands == null) {
+                                    Bukkit.createWorld(new WorldCreator("islands"));
+                                    islands = Bukkit.getWorld("islands");
+                                    if (islands == null) {
+                                        player.sendMessage(Component.text("Failed to create or load the islands world. Please contact an admin.").color(NamedTextColor.RED));
+                                        return;
+                                    }
+                                }
+
+                                Location islandLocation = new Location(Bukkit.getWorld("islands"), 0, 100, 0);
+                                
+                                String schematicName = config.getString("islands.default-island.schematic", "default_island.schem");
+                                boolean pasted = islandSpawnLogic.pasteSchematic(schematicName, islandLocation);
+                                if (pasted) {
+                                    player.sendMessage(Component.text("Island created successfully!").color(NamedTextColor.GREEN));
+                                    player.teleport(islandLocation);
+                                } else {
+                                    player.sendMessage(Component.text("Failed to paste the island schematic. Please contact an admin.").color(NamedTextColor.RED));
+                                }
+                            }
+                            player.closeInventory();
+                            break;
+                    }
+                }
+                break;
+            case "Select island":
+                event.setCancelled(true);
+                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
+                    String uuidString = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
+                        .get(new org.bukkit.NamespacedKey("lhskyblock", "uuid"), PersistentDataType.STRING);
+                    if (uuidString != null) {
+                        UUID islandUUID = UUID.fromString(uuidString);
+                        manageIslandGUI(player, islandUUID);
+                    }
+                }
+                break;
+            case "Delete an island":
+                event.setCancelled(true);
+                if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
+                    String uuidString = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
+                        .get(new org.bukkit.NamespacedKey("lhskyblock", "uuid"), PersistentDataType.STRING);
+                    if (uuidString != null) {
+                        UUID islandUUID = UUID.fromString(uuidString);
+                        confirmDeleteIslandGUI(player, islandUUID);
+                    }
+                }
+                break;
+            case "Confirm island deletion":
                 event.setCancelled(true);
                 if (event.getCurrentItem() != null) {
                     ItemStack item = event.getCurrentItem();
