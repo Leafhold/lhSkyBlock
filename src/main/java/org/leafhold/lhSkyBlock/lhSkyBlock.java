@@ -48,7 +48,7 @@ public final class lhSkyBlock extends JavaPlugin {
             return;
         }
 
-        IslandCommand islandCommand = new IslandCommand();
+        IslandCommand islandCommand = new IslandCommand(instance);
         getCommand("island").setExecutor(islandCommand);
         getServer().getPluginManager().registerEvents(islandCommand, instance);
     }
