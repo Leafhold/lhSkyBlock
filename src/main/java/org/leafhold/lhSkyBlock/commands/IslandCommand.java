@@ -241,9 +241,14 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                             break;
 
                         case "Members":
-                            membersGUI(player);
-                            break;
-                        default:
+                            String uuidString = event.getCurrentItem().getItemMeta().getPersistentDataContainer()
+                                .get(new org.bukkit.NamespacedKey(plugin, "island_uuid"), PersistentDataType.STRING);
+                            if (uuidString != null) {
+                                UUID islandUUID = UUID.fromString(uuidString);
+                                membersGUI(player, islandUUID);
+                            } else {
+                                player.sendMessage(Component.text("Island UUID not found.").color(NamedTextColor.RED));
+                            }
                             break;
                     }
                 }
@@ -503,7 +508,6 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                 }
             }
         }
-    }
 
     private void selectIslandGUI(Player player) {
         List<Object> userIslands = new ArrayList<>();
