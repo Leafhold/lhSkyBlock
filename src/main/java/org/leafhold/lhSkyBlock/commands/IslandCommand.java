@@ -39,7 +39,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
 
     public IslandCommand(lhSkyBlock plugin) {
         this.plugin = plugin;
-        this.databaseManager = DatabaseManager.getInstance();
+        databaseManager = DatabaseManager.getInstance();
     }
 
     @Override

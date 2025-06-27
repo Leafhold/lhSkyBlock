@@ -54,7 +54,7 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
 
     public ShopCommand(lhSkyBlock plugin) {
         this.plugin = plugin;
-        this.databaseManager = DatabaseManager.getInstance();
+        databaseManager = DatabaseManager.getInstance();
 
         File configFile = new File(plugin.getDataFolder(), "shops.yml");
         if (!configFile.exists()) {
