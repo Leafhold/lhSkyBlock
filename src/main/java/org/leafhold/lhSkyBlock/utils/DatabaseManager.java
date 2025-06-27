@@ -137,7 +137,7 @@ public class DatabaseManager {
     }
 
     public List<Object> getIslandsByOwner(String ownerUUID) throws SQLException {
-        String sql = "SELECT uuid, owner, name, public FROM islands WHERE owner = ?";
+        String sql = "SELECT uuid, owner, name, is_public FROM islands WHERE owner = ?";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, ownerUUID);
@@ -155,7 +155,7 @@ public class DatabaseManager {
     }
 
     public Object getIslandByUUID(UUID islandUUID) throws SQLException {
-        String sql = "SELECT uuid, owner, name, public FROM islands WHERE uuid = ?";
+        String sql = "SELECT uuid, owner, name, is_public FROM islands WHERE uuid = ?";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, islandUUID.toString());
@@ -173,7 +173,7 @@ public class DatabaseManager {
     }
 
     public boolean visitorsAllowed(String islandUUID) throws SQLException {
-        String sql = "SELECT public FROM islands WHERE uuid = ?";
+        String sql = "SELECT is_public FROM islands WHERE uuid = ?";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, islandUUID);
@@ -186,7 +186,7 @@ public class DatabaseManager {
     }
 
     public void toggleVisitors(UUID islandUUID) throws SQLException {
-        String sql = "UPDATE islands SET public = NOT public WHERE uuid = ?";
+        String sql = "UPDATE is_islands SET public = NOT is_public WHERE uuid = ?";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, islandUUID.toString());
