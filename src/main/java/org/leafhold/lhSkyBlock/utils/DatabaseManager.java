@@ -90,7 +90,6 @@ public class DatabaseManager {
             "name TEXT NOT NULL," +
             "world TEXT NOT NULL," +
             "is_public BOOLEAN NOT NULL DEFAULT false," +
-            "UNIQUE (world)," +
             "UNIQUE (island_index)" + //todo Make sure this is unique per world, not globally
             ");";
         String memberTable =
