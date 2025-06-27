@@ -25,9 +25,8 @@ public class VoidTeleportListener implements Listener {
     @EventHandler
     public void onEntityDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player) {
-            Player player = (Player) event.getEntity();
             if (event.getCause() == DamageCause.VOID) {
-                event.setCancelled(true);
+                Player player = (Player) event.getEntity();
                 World world = player.getWorld();
 
                 if (world == null) {
@@ -36,13 +35,21 @@ public class VoidTeleportListener implements Listener {
                 }
 
                 if (world.getName().equalsIgnoreCase(config.getString("main_world"))) {
+                    event.setCancelled(true);
                     Location loc = world.getSpawnLocation();
                     loc.add(0.5, 0, 0.5);
                     loc.setPitch(0);
                     loc.setYaw(180);
                     player.teleportAsync(loc, TeleportCause.PLUGIN);
-                } else {
+                } else if (world.getName().startsWith("islands-")) {
                     //todo get current island spawn location and teleport player there
+                    event.setCancelled(true);
+                    World mainWorld = plugin.getServer().getWorld(config.getString("main_world"));
+                    Location loc = mainWorld.getSpawnLocation();
+                    loc.add(0.5, 0, 0.5);
+                    loc.setPitch(0);
+                    loc.setYaw(180);
+                    player.teleportAsync(loc, TeleportCause.PLUGIN);
                 }
             }
         }
