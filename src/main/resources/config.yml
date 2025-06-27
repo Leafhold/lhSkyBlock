@@ -9,4 +9,7 @@ db:
 main_world: world
 
 islands:
-  spacing: 1000 # Spacing between islands in blocks
+  default-island:
+    schematic: default_island.schematic # Default island schematic file
+  y-coordinate: 100 # Y-coordinate for island spawn
+  spacing: 1024 # Spacing between islands in blocks

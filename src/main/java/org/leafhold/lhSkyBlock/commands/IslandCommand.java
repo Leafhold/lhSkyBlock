@@ -3,6 +3,8 @@ package org.leafhold.lhSkyBlock.commands;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
 import org.leafhold.lhSkyBlock.islands.IslandMenuHolder;
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
+import org.leafhold.lhSkyBlock.islands.IslandSpawning;
+import org.leafhold.lhSkyBlock.utils.VoidWorldGenerator;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -18,6 +20,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.WorldCreator;
 
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -30,16 +36,21 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.io.File;
 
 public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
-    private final lhSkyBlock plugin;
+    private static lhSkyBlock plugin;
+    private static FileConfiguration config;
     private DatabaseManager databaseManager;
     private final Map<UUID, Long> visitorToggleCooldown = new HashMap<>();
     private static final long COOLDOWN_TIME = 5000;
+    private static IslandSpawning islandSpawning;
 
     public IslandCommand(lhSkyBlock plugin) {
         this.plugin = plugin;
+        config = plugin.getConfig();
         databaseManager = DatabaseManager.getInstance();
+        islandSpawning = new IslandSpawning(plugin);
     }
 
     @Override
@@ -317,18 +328,47 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                 break;
                             case "create_island":
                                 player.sendMessage(Component.text("Creating a new island...").color(NamedTextColor.AQUA));
-                                //todo create island
+                                World islandWorld = Bukkit.getWorlds().stream()
+                                    .filter(world -> world.getName().startsWith("islands-"))
+                                    .findFirst()
+                                    .orElse(null);
+                                if (islandWorld == null) {
+                                    String worldUUID = UUID.randomUUID().toString();
+                                    plugin.getLogger().info("Creating new island world with UUID: " + worldUUID);
+                                    WorldCreator creator = new WorldCreator("islands-" + worldUUID);
+                                    creator.generator(new VoidWorldGenerator(plugin));
+                                    islandWorld = creator.createWorld();
+                                }
                                 UUID newIslandUUID;
                                 Integer islandIndex;
                                 Object[] result = databaseManager.createIsland(
                                     player.getUniqueId(),
                                     player.getName() + "'s Island",
-                                    "islands" //todo add world selection logic
+                                    islandWorld.getName()
                                 );
+                                
                                 if (result != null) {
                                     newIslandUUID = (UUID) result[0];
                                     // islandIndex = (Integer) result[1];
+                                    Location islandLocation = new Location(islandWorld, 0, 100, 0); //todo add logic to get location based on islandIndex
+                                    String schematicName = config.getString("islands.default-island.schematic");
+                                    if (schematicName == null || schematicName.isEmpty()) {
+                                        player.sendMessage(Component.text("Island schematic not found in config.").color(NamedTextColor.RED));
+                                        return;
+                                    }
+                                    File schematicFile = new File(plugin.getDataFolder(), "schematics/" + schematicName);
+                                    boolean pasted = islandSpawning.pasteIsland(
+                                        schematicFile,
+                                        islandLocation,
+                                        player
+                                    );
+
+                                    if (!pasted) {
+                                        player.sendMessage(Component.text("Failed to paste island schematic.").color(NamedTextColor.RED));
+                                        return;
+                                    }
                                     player.sendMessage(Component.text("Island created successfully!").color(NamedTextColor.GREEN));
+                                    player.teleport(islandLocation.add(0, 1, 0).setRotation(180, 0));
                                 } else {
                                     player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
                                 }
