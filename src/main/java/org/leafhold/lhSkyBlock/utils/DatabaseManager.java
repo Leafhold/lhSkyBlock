@@ -90,7 +90,8 @@ public class DatabaseManager {
             "name TEXT NOT NULL," +
             "world TEXT NOT NULL," +
             "is_public BOOLEAN NOT NULL DEFAULT false," +
-            "UNIQUE (world, island_index)" +
+            "UNIQUE (world)," +
+            "UNIQUE (island_index)" + //todo Make sure this is unique per world, not globally
             ");";
         String memberTable =
             "CREATE TABLE IF NOT EXISTS island_members (" +
@@ -98,8 +99,9 @@ public class DatabaseManager {
             "member_uuid CHAR(36) NOT NULL," +
             "role TEXT NOT NULL DEFAULT 'member'," +
             "PRIMARY KEY (island_uuid, member_uuid)," +
-            "FOREIGN KEY (island_uuid) REFERENCES islands(uuid));";
-        
+            "FOREIGN KEY (island_uuid) REFERENCES islands(uuid)" +
+            ");";
+
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(islandTable);
             preparedStatement.executeUpdate();
@@ -139,7 +141,7 @@ public class DatabaseManager {
     }
 
     public List<Object> getIslandsByOwner(String ownerUUID) throws SQLException {
-        String sql = "SELECT uuid, owner, name, public FROM islands WHERE owner = ?";
+        String sql = "SELECT uuid, owner, name, is_public FROM islands WHERE owner = ?";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, ownerUUID);
@@ -157,7 +159,7 @@ public class DatabaseManager {
     }
 
     public Object getIslandByUUID(UUID islandUUID) throws SQLException {
-        String sql = "SELECT uuid, owner, name, public FROM islands WHERE uuid = ?";
+        String sql = "SELECT uuid, owner, name, is_public FROM islands WHERE uuid = ?";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, islandUUID.toString());
@@ -175,7 +177,7 @@ public class DatabaseManager {
     }
 
     public boolean visitorsAllowed(String islandUUID) throws SQLException {
-        String sql = "SELECT public FROM islands WHERE uuid = ?";
+        String sql = "SELECT is_public FROM islands WHERE uuid = ?";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, islandUUID);
@@ -188,7 +190,7 @@ public class DatabaseManager {
     }
 
     public void toggleVisitors(UUID islandUUID) throws SQLException {
-        String sql = "UPDATE islands SET public = NOT public WHERE uuid = ?";
+        String sql = "UPDATE islands SET is_public = NOT is_public WHERE uuid = ?";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, islandUUID.toString());
