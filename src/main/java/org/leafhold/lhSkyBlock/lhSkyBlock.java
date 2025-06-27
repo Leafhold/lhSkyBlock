@@ -46,18 +46,16 @@ public final class lhSkyBlock extends JavaPlugin {
         }
         instance = this;
         saveDefaultConfig();
-
+        databaseManager = new DatabaseManager(instance);
         try {
-            databaseManager = DatabaseManager.getInstance();
             databaseManager.connect();
-            
         } catch (Exception e) {
-            getLogger().severe("Failed to connect to database: " + e.getMessage());
+            getLogger().severe("Failed to connect to the database: " + e.getMessage());
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
 
-        IslandCommand islandCommand = new IslandCommand(instance);
+        IslandCommand islandCommand = new IslandCommand(instance); // pass databaseManager here
         getCommand("island").setExecutor(islandCommand);
         getCommand("island").setTabCompleter(islandCommand);
         getServer().getPluginManager().registerEvents(islandCommand, instance);
@@ -81,7 +79,13 @@ public final class lhSkyBlock extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        DatabaseManager.getInstance().disconnect();
+        if (databaseManager != null) {
+            try {
+                databaseManager.disconnect();
+            } catch (Exception e) {
+                getLogger().severe("Failed to disconnect from the database: " + e.getMessage());
+            }
+        }
     }
 
     public static boolean isPaper() {

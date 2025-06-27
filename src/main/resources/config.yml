@@ -4,6 +4,7 @@ db:
   database: skyblock
   user: skyblock
   password: skyblock
+  pool-size: 10
 
 main_world: world
 
