@@ -328,8 +328,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                 break;
                             case "create_island":
                                 player.sendMessage(Component.text("Creating a new island...").color(NamedTextColor.AQUA));
-                                World islandWorld;
-                                islandWorld = Bukkit.getWorlds().stream()
+                                World islandWorld = Bukkit.getWorlds().stream()
                                     .filter(world -> world.getName().startsWith("islands-"))
                                     .findFirst()
                                     .orElse(null);
