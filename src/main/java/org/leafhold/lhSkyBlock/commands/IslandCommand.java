@@ -328,24 +328,29 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                 break;
                             case "create_island":
                                 player.sendMessage(Component.text("Creating a new island...").color(NamedTextColor.AQUA));
+                                World islandWorld;
+                                islandWorld = Bukkit.getWorlds().stream()
+                                    .filter(world -> world.getName().startsWith("islands-"))
+                                    .findFirst()
+                                    .orElse(null);
+                                if (islandWorld == null) {
+                                    String worldUUID = UUID.randomUUID().toString();
+                                    plugin.getLogger().info("Creating new island world with UUID: " + worldUUID);
+                                    WorldCreator creator = new WorldCreator("islands-" + worldUUID);
+                                    creator.generator(new VoidWorldGenerator(plugin));
+                                    islandWorld = creator.createWorld();
+                                }
                                 UUID newIslandUUID;
                                 Integer islandIndex;
                                 Object[] result = databaseManager.createIsland(
                                     player.getUniqueId(),
                                     player.getName() + "'s Island",
-                                    "islands" //todo add world selection logic
+                                    islandWorld.getName()
                                 );
+                                
                                 if (result != null) {
                                     newIslandUUID = (UUID) result[0];
                                     // islandIndex = (Integer) result[1];
-                                    World islandWorld = Bukkit.getWorld("islands");
-                                    // If the world does not exist, create an empty world
-                                    if (islandWorld == null) {
-                                        WorldCreator creator = new WorldCreator("islands");
-                                        creator.generator(new VoidWorldGenerator(plugin));
-                                        islandWorld = creator.createWorld();
-                                    }
-
                                     Location islandLocation = new Location(islandWorld, 0, 100, 0); //todo add logic to get location based on islandIndex
                                     String schematicName = config.getString("islands.default-island.schematic");
                                     if (schematicName == null || schematicName.isEmpty()) {
@@ -364,7 +369,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                         return;
                                     }
                                     player.sendMessage(Component.text("Island created successfully!").color(NamedTextColor.GREEN));
-                                    player.teleport(islandLocation);
+                                    player.teleport(islandLocation.add(0, 1, 0).setRotation(180, 0));
                                 } else {
                                     player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
                                 }
