@@ -67,6 +67,8 @@ public class DatabaseManager {
             hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
             dataSource = new HikariDataSource(hikariConfig);
+
+            createTable();
         } catch (Exception e) {
             lhSkyBlock.getInstance().getLogger().severe("Failed to configure HikariCP: " + e.getMessage());
             throw new SQLException("HikariCP configuration failed");
