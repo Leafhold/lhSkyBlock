@@ -104,4 +104,26 @@ public class IslandSpawning {
 
         return new Location(world, x * islandSpacing, islandSpawnY, z * islandSpacing);
     }
+
+    public static Location getIslandIndexFromLocation(Location location) {
+        if (location == null || location.getWorld() == null) {
+            plugin.getLogger().severe("Invalid location");
+            return null;
+        }
+        World world = location.getWorld();
+        for (Integer index = 0; index < 10000; index++) { //todo Replace 10,000 with configurable max islands per world
+            Location island = getIslandSpawnLocation(index, world);
+            if (island == null) {
+                plugin.getLogger().severe("Failed to get island spawn location for index: " + index);
+                return null;
+            }
+            Integer distanceX = Math.abs(location.getBlockX() - island.getBlockX());
+            Integer distanceZ = Math.abs(location.getBlockZ() - island.getBlockZ());
+            Integer islandSpacing = config.getInt("islands.spacing");
+            if (distanceX <= islandSpacing / 2 && distanceZ <= islandSpacing / 2) {
+                return new Location(world, island.getBlockX(), island.getBlockY(), island.getBlockZ());
+            }
+        }
+        return null;
+    }
 }

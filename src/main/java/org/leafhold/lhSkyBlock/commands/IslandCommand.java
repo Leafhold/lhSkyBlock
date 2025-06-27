@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.io.File;
+import java.sql.ResultSet;
 
 public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
     private static lhSkyBlock plugin;
@@ -138,7 +139,10 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
 
             case "home":
                 if (!userIslands.isEmpty()) {
-                    //todo teleportToIsland(player);
+                    Object island = userIslands.get(0);
+                    Object[] islandObj = (Object[]) island;
+                    UUID islandUUID = UUID.fromString(islandObj[0].toString());
+                    teleportToIsland(player, islandUUID);
                 } else {
                     final TextComponent message = Component.text("You do not have an island yet. Use ")
                         .color(NamedTextColor.RED)
@@ -167,6 +171,45 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                 return false;
         }
         return true;
+    }
+
+    private void teleportToIsland(Player player, UUID islandUUID) {
+        if (islandUUID == null) {
+            player.sendMessage(Component.text("Island UUID is null.").color(NamedTextColor.RED));
+            return;
+        }
+        Object islandData = null;
+        try {
+            islandData = databaseManager.getIslandByUUID(islandUUID);
+        } catch (SQLException e) {
+            player.sendMessage(Component.text("An error occurred while fetching the island. Please try again later.").color(NamedTextColor.RED));
+            e.printStackTrace();
+            return;
+        }
+        if (islandData == null) {
+            player.sendMessage(Component.text("Island not found.").color(NamedTextColor.RED));
+            return;
+        }
+        Integer islandIndex = (Integer) ((Object[]) islandData)[4];
+        if (islandData == null) {
+            player.sendMessage(Component.text("Island not found.").color(NamedTextColor.RED));
+            return;
+        }
+
+        if (islandIndex < 0) {
+            player.sendMessage(Component.text("Invalid island index.").color(NamedTextColor.RED));
+            return;
+        }
+
+        Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandIndex, Bukkit.getWorld("islands"));
+        if (islandLocation == null) {
+            player.sendMessage(Component.text("Island location not found.").color(NamedTextColor.RED));
+            return;
+        }
+        islandLocation.setPitch(0);
+        islandLocation.setYaw(180);
+        islandLocation.add(0.5, 1, -0.5);
+        player.teleportAsync(islandLocation);
     }
 
     private void islandHelp(Player player) {
@@ -248,6 +291,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                     case "island_home":
                                         //todo teleport to island home
                                         player.sendMessage(Component.text("Teleporting to your island...").color(NamedTextColor.AQUA));
+                                        teleportToIsland(player, islandUUID);
                                         break;
                                     case "allow_visitors":
                                         long currentTime = System.currentTimeMillis();
@@ -330,15 +374,15 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                 player.closeInventory();
                                 player.sendMessage(Component.text("Creating a new island...").color(NamedTextColor.AQUA));
                                 World islandWorld = Bukkit.getWorlds().stream()
-                                    .filter(world -> world.getName().startsWith("islands-"))
+                                    .filter(world -> world.getName().equalsIgnoreCase("islands"))
                                     .findFirst()
                                     .orElse(null);
                                 if (islandWorld == null) {
-                                    String worldUUID = UUID.randomUUID().toString();
-                                    plugin.getLogger().info("Creating new island world with UUID: " + worldUUID);
-                                    WorldCreator creator = new WorldCreator("islands-" + worldUUID);
+                                    WorldCreator creator = new WorldCreator("islands");
                                     creator.generator(new VoidWorldGenerator(plugin));
                                     islandWorld = creator.createWorld();
+                                    islandWorld.setDifficulty(org.bukkit.Difficulty.NORMAL);
+                                    islandWorld.setPVP(false);
                                 }
                                 UUID newIslandUUID;
                                 Integer islandIndex;

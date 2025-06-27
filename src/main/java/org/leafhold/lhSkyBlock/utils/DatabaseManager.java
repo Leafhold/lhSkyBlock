@@ -171,7 +171,7 @@ public class DatabaseManager {
     }
 
     public Object getIslandByUUID(UUID islandUUID) throws SQLException {
-        String sql = "SELECT uuid, owner, name, is_public FROM islands WHERE uuid = ?";
+        String sql = "SELECT uuid, owner, name, is_public, island_index FROM islands WHERE uuid = ?";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, islandUUID.toString());
@@ -181,7 +181,8 @@ public class DatabaseManager {
                 String owner = resultSet.getString("owner");
                 String name = resultSet.getString("name");
                 boolean isPublic = resultSet.getBoolean("is_public");
-                return new Object[] { uuid, owner, name, isPublic };
+                Integer islandIndex = resultSet.getInt("island_index");
+                return new Object[] { uuid, owner, name, isPublic, islandIndex };
             }
         }
         return null;
