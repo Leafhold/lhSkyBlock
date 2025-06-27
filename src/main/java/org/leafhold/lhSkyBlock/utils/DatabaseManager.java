@@ -125,19 +125,32 @@ public class DatabaseManager {
             preparedStatement.close();
         }
         UUID islandUUID = java.util.UUID.randomUUID();
-        // Integer islandIndex = 0;
+        int islandIndex = -1;
 
         sql = "INSERT INTO islands (uuid, owner, name, world) VALUES (?, ?, ?, ?)";
         try (Connection connection = dataSource.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, islandUUID.toString());
             preparedStatement.setString(2, ownerUUID.toString());
             preparedStatement.setString(3, name);
             preparedStatement.setString(4, world);
             preparedStatement.executeUpdate();
+            ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                islandIndex = generatedKeys.getInt(1);
+            } else {
+                String fetchSql = "SELECT island_index FROM islands WHERE uuid = ?";
+                PreparedStatement fetchStmt = connection.prepareStatement(fetchSql);
+                fetchStmt.setString(1, islandUUID.toString());
+                ResultSet rs = fetchStmt.executeQuery();
+                if (rs.next()) {
+                    islandIndex = rs.getInt("island_index");
+                }
+                fetchStmt.close();
+            }
             preparedStatement.close();
         }
-        return new Object[] { islandUUID };
+        return new Object[] { islandUUID, islandIndex };
     }
 
     public List<Object> getIslandsByOwner(String ownerUUID) throws SQLException {

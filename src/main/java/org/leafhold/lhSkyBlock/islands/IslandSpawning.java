@@ -18,6 +18,7 @@ import com.sk89q.worldedit.function.operation.Operations;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.World;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -63,5 +64,44 @@ public class IslandSpawning {
             plugin.getLogger().severe("Failed to paste island schematic: " + e.getMessage());
             return false;
         }
+    }
+
+    public static Location getIslandSpawnLocation(Integer islandIndex, World world) {
+        if (world == null || islandIndex < 0) {
+            plugin.getLogger().severe("Invalid world or island index");
+            return null;
+        }
+        if (islandIndex == 0) {
+            return new Location(world, 0.5, islandSpawnY, 0.5);
+        }
+
+        Integer layer = 1;
+        Integer previousLayerIslands = 0;
+
+        while (true) {
+            Integer layerIslands = 8 * layer;
+            if (islandIndex <= previousLayerIslands + layerIslands) break;
+            previousLayerIslands += layerIslands;
+            layer++;
+        }
+
+        Integer layerIndex = islandIndex - previousLayerIslands - 1;
+        Integer x, z;
+        
+        if (layerIndex < 2 * layer) {
+            x = layer;
+            z = -layer + layerIndex;
+        } else if (layerIndex < 4 * layer) {
+            x = layer - (layerIndex - 2 * layer);
+            z = layer;
+        } else if (layerIndex < 6 * layer) {
+            x = -layer;
+            z = layer - (layerIndex - 4 * layer);
+        } else {
+            x = -layer + (layerIndex - 6 * layer);
+            z = -layer;
+        }
+
+        return new Location(world, x * islandSpacing, islandSpawnY, z * islandSpacing);
     }
 }

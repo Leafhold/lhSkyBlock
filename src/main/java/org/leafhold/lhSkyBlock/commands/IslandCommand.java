@@ -327,6 +327,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                             case "manage_members":
                                 break;
                             case "create_island":
+                                player.closeInventory();
                                 player.sendMessage(Component.text("Creating a new island...").color(NamedTextColor.AQUA));
                                 World islandWorld = Bukkit.getWorlds().stream()
                                     .filter(world -> world.getName().startsWith("islands-"))
@@ -349,8 +350,8 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                 
                                 if (result != null) {
                                     newIslandUUID = (UUID) result[0];
-                                    // islandIndex = (Integer) result[1];
-                                    Location islandLocation = new Location(islandWorld, 0, 100, 0); //todo add logic to get location based on islandIndex
+                                    islandIndex = (Integer) result[1];
+                                    Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandIndex, islandWorld);
                                     String schematicName = config.getString("islands.default-island.schematic");
                                     if (schematicName == null || schematicName.isEmpty()) {
                                         player.sendMessage(Component.text("Island schematic not found in config.").color(NamedTextColor.RED));
@@ -372,7 +373,6 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                 } else {
                                     player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
                                 }
-                                player.closeInventory();
                                 break;
                             case "select_island":
                                 if (islandUUID == null) {
