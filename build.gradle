@@ -31,7 +31,7 @@ repositories {
     }
     maven {
         name = "enginehub"
-        url = "https://repo.enginehub.org/repo/"
+        url = "https://maven.enginehub.org/repo/"
     }
 }
 
@@ -44,7 +44,7 @@ dependencies {
         exclude group: "org.bukkit", module: "bukkit"
     }
     compileOnly("de.oliver:FancyHolograms:2.5.0")
-    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.3.14")
+    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit:2.13.0")
     implementation("com.zaxxer:HikariCP:6.3.0")
 }
 
