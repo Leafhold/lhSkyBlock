@@ -12,13 +12,23 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldedit.world.block.BaseBlock;
+import com.sk89q.worldedit.world.block.BlockTypes;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.regions.CuboidRegion;
+
+import com.fastasyncworldedit.core.Fawe;
+import com.fastasyncworldedit.core.FaweAPI;
+import com.fastasyncworldedit.core.util.TaskManager;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.World;
+import org.bukkit.block.BlockType;
+import org.bukkit.Material;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -56,14 +66,19 @@ public class IslandSpawning {
             return false;
         }
         try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(location.getWorld()))) {
-            Operation operation = new ClipboardHolder(clipboard).createPaste(editSession).to(BlockVector3.at(location.getBlockX(), location.getBlockY(), location.getBlockZ())).build();
+            Operation operation = new ClipboardHolder(clipboard)
+            .createPaste(editSession)
+            .to(BlockVector3.at(location.getBlockX(), location.getBlockY(), location.getBlockZ()))
+            .ignoreAirBlocks(false)
+            .build();
             Operations.complete(operation);
-            editSession.close();
+            editSession.flushQueue();
             return true;
         } catch (Exception e) {
             plugin.getLogger().severe("Failed to paste island schematic: " + e.getMessage());
             return false;
         }
+        //todo Add worldguard region creation and ownership assignment
     }
 
     public static Location getIslandSpawnLocation(Integer islandIndex, World world) {
@@ -125,5 +140,36 @@ public class IslandSpawning {
             }
         }
         return null;
+    }
+
+    public static boolean deleteIsland(Location location) {
+        if (location == null || location.getWorld() == null) return false;
+        Location islandLocation = getIslandIndexFromLocation(location);
+        if (islandLocation == null) return false;
+
+        Integer minY = islandLocation.getWorld().getMinHeight();
+        Integer maxY = islandLocation.getWorld().getMaxHeight() - 1;
+        Location minLocation = islandLocation.clone();
+        minLocation.setY(minY);
+        minLocation.subtract(islandSpacing / 2, 0, islandSpacing / 2);
+        Location maxLocation = islandLocation.clone();
+        maxLocation.setY(maxY);
+        maxLocation.add(islandSpacing / 2, 0, islandSpacing / 2);
+        plugin.getLogger().info("Deleting island at " + minLocation + " to " + maxLocation);
+        BlockVector3 min = BukkitAdapter.asBlockVector(minLocation);
+        BlockVector3 max = BukkitAdapter.asBlockVector(maxLocation);
+        Region region = new CuboidRegion(min, max);
+
+        TaskManager.taskManager().async(() -> {
+            try (EditSession editSession = WorldEdit.getInstance().newEditSessionBuilder()
+                    .world(BukkitAdapter.adapt(islandLocation.getWorld()))
+                    .build()) {
+                editSession.setBlocks(region, BlockTypes.AIR.getDefaultState());
+                editSession.flushQueue();
+            } catch (Exception e) {
+                plugin.getLogger().severe("Failed to delete island at location " + islandLocation + ": " + e.getMessage());
+            }
+        });
+        return true;
     }
 }

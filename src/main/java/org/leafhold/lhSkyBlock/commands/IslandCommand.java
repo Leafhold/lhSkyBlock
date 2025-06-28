@@ -443,7 +443,28 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                             player.sendMessage(Component.text("Island UUID not found.").color(NamedTextColor.RED));
                                             return;
                                         }
-                                        Boolean deleted = databaseManager.deleteIsland(player, islandUUID.toString());
+                                        Object islandData = databaseManager.getIslandByUUID(islandUUID);
+                                        if (islandData == null) {
+                                            player.sendMessage(Component.text("Island not found.").color(NamedTextColor.RED));
+                                            return;
+                                        }
+                                        if (!((Object[]) islandData)[1].toString().equals(player.getUniqueId().toString())) {
+                                            player.sendMessage(Component.text("You do not own this island.").color(NamedTextColor.RED));
+                                            return;
+                                        }
+                                        Location islandLocation = IslandSpawning.getIslandSpawnLocation(
+                                            (Integer) ((Object[]) islandData)[4],
+                                            Bukkit.getWorld("islands")
+                                        );
+                                        player.sendMessage(Component.text("Deleting island...").color(NamedTextColor.AQUA));
+                                        player.teleportAsync(Bukkit.getWorld("world").getSpawnLocation().add(0.5, 1, -0.5).setRotation(180, 0));    
+                                        Boolean deleted = IslandSpawning.deleteIsland(islandLocation);
+                                        if (deleted == null || !deleted) {
+                                            player.sendMessage(Component.text("Failed to delete island. Please try again later.").color(NamedTextColor.RED));
+                                            return;
+                                        }
+
+                                        deleted = databaseManager.deleteIsland(player, islandUUID.toString());
                                         if (deleted) {
                                             player.sendMessage(Component.text("Island deleted successfully.").color(NamedTextColor.GREEN));
                                         } else {
