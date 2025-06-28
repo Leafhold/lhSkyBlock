@@ -8,6 +8,7 @@ db:
 
 main-world: world
 join-message: true
+keep-inventory: true # Keep inventory on death (only works outside combat)
 
 islands:
   default-island:
