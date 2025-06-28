@@ -7,6 +7,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.command.TabCompleter;
 
 import org.leafhold.lhSkyBlock.commands.IslandCommand;
+import org.leafhold.lhSkyBlock.listeners.PlayerJoinListener;
+import org.leafhold.lhSkyBlock.listeners.PlayerLeaveListener;
 import org.leafhold.lhSkyBlock.listeners.VoidTeleportListener;
 import org.leafhold.lhSkyBlock.shops.SignShop;
 import org.leafhold.lhSkyBlock.commands.ShopCommand;
@@ -60,6 +62,8 @@ public final class lhSkyBlock extends JavaPlugin {
         getCommand("island").setTabCompleter(islandCommand);
         getServer().getPluginManager().registerEvents(islandCommand, instance);
       
+        getServer().getPluginManager().registerEvents(new PlayerJoinListener(instance), instance);
+        getServer().getPluginManager().registerEvents(new PlayerLeaveListener(instance), instance);
         getServer().getPluginManager().registerEvents(new VoidTeleportListener(instance), instance);
 
         if (Bukkit.getPluginManager().isPluginEnabled("FancyHolograms")) {

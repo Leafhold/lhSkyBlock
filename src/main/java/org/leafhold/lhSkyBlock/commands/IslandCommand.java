@@ -201,7 +201,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
             return;
         }
 
-        Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandIndex, Bukkit.getWorld("islands"));
+        Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandIndex, Bukkit.getWorld("islands")).clone();
         if (islandLocation == null) {
             player.sendMessage(Component.text("Island location not found.").color(NamedTextColor.RED));
             return;
@@ -456,7 +456,11 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                             Bukkit.getWorld("islands")
                                         );
                                         player.sendMessage(Component.text("Deleting island...").color(NamedTextColor.AQUA));
-                                        player.teleportAsync(Bukkit.getWorld("world").getSpawnLocation().add(0.5, 1, -0.5).setRotation(180, 0));    
+                                        if (player.getLocation().getWorld().getName().equals("islands")) {
+                                            if (IslandSpawning.getIslandIndexFromLocation(player.getLocation()) == ((Object[]) islandData)[4]) {
+                                                player.teleportAsync(Bukkit.getWorld("world").getSpawnLocation().add(0.5, 1, -0.5).setRotation(180, 0));
+                                            }
+                                        };
                                         Boolean deleted = IslandSpawning.deleteIsland(islandLocation);
                                         if (deleted == null || !deleted) {
                                             player.sendMessage(Component.text("Failed to delete island. Please try again later.").color(NamedTextColor.RED));

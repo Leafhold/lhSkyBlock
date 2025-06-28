@@ -15,22 +15,20 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.Bukkit;
 
-public class PlayerJoinListener implements Listener {
+public class PlayerLeaveListener implements Listener {
     private final lhSkyBlock plugin;
     private static FileConfiguration config;
     private static boolean bJoinMessage;
 
-    public PlayerJoinListener(lhSkyBlock plugin) {
+    public PlayerLeaveListener(lhSkyBlock plugin) {
         this.plugin = plugin;
         config = plugin.getConfig();
         bJoinMessage = config.getBoolean("join_message", true);
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    public void onPlayerQuit(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        World world = player.getWorld();
-        Location location = player.getLocation();
 
         if (bJoinMessage) {
             event.joinMessage(null);
@@ -38,15 +36,6 @@ public class PlayerJoinListener implements Listener {
             event.joinMessage(Component.text("[")
                 .append(Component.text("+").color(NamedTextColor.GREEN))
                 .append(Component.text("] " + player.getName())));
-        }
-        World mainWorld = Bukkit.getWorld(config.getString("main-world"));
-        if (world == null || world == mainWorld) {
-            Location loc = mainWorld.getSpawnLocation();
-            loc.add(0.5, 0, 0.5);
-            loc.setPitch(0);
-            loc.setYaw(180);
-            player.teleportAsync(loc, TeleportCause.PLUGIN);
-            return;
         }
     }
 }

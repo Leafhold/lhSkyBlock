@@ -6,7 +6,8 @@ db:
   password: skyblock
   pool-size: 10
 
-main_world: world
+main-world: world
+join-message: true
 
 islands:
   default-island:

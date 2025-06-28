@@ -35,7 +35,7 @@ public class VoidTeleportListener implements Listener {
                 event.setCancelled(true);
                 World world = player.getWorld();
                 String worldName = world.getName();
-                if (worldName.equalsIgnoreCase(config.getString("main_world"))) {
+                if (worldName.equalsIgnoreCase(config.getString("main-world"))) {
                     Location loc = world.getSpawnLocation();
                     loc.add(0.5, 0, 0.5);
                     loc.setPitch(0);
