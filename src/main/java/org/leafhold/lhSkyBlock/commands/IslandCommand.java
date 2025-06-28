@@ -289,7 +289,6 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                 }
                                 switch (itemKey) {
                                     case "island_home":
-                                        //todo teleport to island home
                                         player.sendMessage(Component.text("Teleporting to your island...").color(NamedTextColor.AQUA));
                                         teleportToIsland(player, islandUUID);
                                         break;

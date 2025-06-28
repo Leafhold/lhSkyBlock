@@ -84,13 +84,13 @@ public class DatabaseManager {
 
     private void createTable() throws SQLException {
         String islandTable = "CREATE TABLE IF NOT EXISTS islands (" +
-            "island_index INT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
+            "island_index INT NOT NULL PRIMARY KEY," +
             "uuid CHAR(36) NOT NULL UNIQUE," +
             "owner CHAR(36) NOT NULL," +
             "name TEXT NOT NULL," +
             "world TEXT NOT NULL," +
             "is_public BOOLEAN NOT NULL DEFAULT false," +
-            "UNIQUE (island_index)" + //todo Make sure this is unique per world, not globally
+            "UNIQUE (island_index, world)" +
             ");";
         String memberTable =
             "CREATE TABLE IF NOT EXISTS island_members (" +
@@ -126,13 +126,18 @@ public class DatabaseManager {
         UUID islandUUID = java.util.UUID.randomUUID();
         int islandIndex = -1;
 
-        sql = "INSERT INTO islands (uuid, owner, name, world) VALUES (?, ?, ?, ?)";
+        sql = "INSERT INTO islands (uuid, owner, name, world, island_index) VALUES (?, ?, ?, ?, ?)";
         try (Connection connection = dataSource.getConnection()) {
+            Integer newIslandIndex = getNewIslandIndex();
+            if (newIslandIndex == null) {
+                throw new SQLException("Failed to get new island index");
+            }
             PreparedStatement preparedStatement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, islandUUID.toString());
             preparedStatement.setString(2, ownerUUID.toString());
             preparedStatement.setString(3, name);
             preparedStatement.setString(4, world);
+            preparedStatement.setInt(5, newIslandIndex);
             preparedStatement.executeUpdate();
             ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
             if (generatedKeys.next()) {
@@ -223,6 +228,26 @@ public class DatabaseManager {
             } else {
                 return true;
             }
+        }
+    }
+
+    private Integer getNewIslandIndex() {
+        String sql = "SELECT island_index FROM islands ORDER BY island_index ASC";
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            int expected = 0;
+            while (resultSet.next()) {
+                int current = resultSet.getInt("island_index");
+                if (current != expected) {
+                    return expected;
+                }
+                expected++;
+            }
+            return expected;
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to get new island index: " + e.getMessage());
+            return null;
         }
     }
 }
