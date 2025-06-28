@@ -33,12 +33,16 @@ import org.bukkit.Material;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class IslandSpawning {
     private static lhSkyBlock plugin;
     private static FileConfiguration config;
     private static Integer islandSpawnY;
     private static Integer islandSpacing;
+    private static Map<Integer, Location> islandLocations = new HashMap<>();
     
     public IslandSpawning(lhSkyBlock plugin) {
         this.plugin = plugin;
@@ -86,38 +90,42 @@ public class IslandSpawning {
             plugin.getLogger().severe("Invalid world or island index");
             return null;
         }
-        if (islandIndex == 0) {
-            return new Location(world, 0.5, islandSpawnY, 0.5);
-        }
-
-        Integer layer = 1;
-        Integer previousLayerIslands = 0;
-
-        while (true) {
-            Integer layerIslands = 8 * layer;
-            if (islandIndex <= previousLayerIslands + layerIslands) break;
-            previousLayerIslands += layerIslands;
-            layer++;
-        }
-
-        Integer layerIndex = islandIndex - previousLayerIslands - 1;
-        Integer x, z;
-        
-        if (layerIndex < 2 * layer) {
-            x = layer;
-            z = -layer + layerIndex;
-        } else if (layerIndex < 4 * layer) {
-            x = layer - (layerIndex - 2 * layer);
-            z = layer;
-        } else if (layerIndex < 6 * layer) {
-            x = -layer;
-            z = layer - (layerIndex - 4 * layer);
+        if (islandLocations.containsKey(islandIndex)) {
+            return islandLocations.get(islandIndex);
         } else {
-            x = -layer + (layerIndex - 6 * layer);
-            z = -layer;
-        }
+            if (islandIndex == 0) {
+                return new Location(world, 0.5, islandSpawnY, 0.5);
+            }
 
-        return new Location(world, x * islandSpacing, islandSpawnY, z * islandSpacing);
+            Integer layer = 1;
+            Integer previousLayerIslands = 0;
+
+            while (true) {
+                Integer layerIslands = 8 * layer;
+                if (islandIndex <= previousLayerIslands + layerIslands) break;
+                previousLayerIslands += layerIslands;
+                layer++;
+            }
+
+            Integer layerIndex = islandIndex - previousLayerIslands - 1;
+            Integer x, z;
+            
+            if (layerIndex < 2 * layer) {
+                x = layer;
+                z = -layer + layerIndex;
+            } else if (layerIndex < 4 * layer) {
+                x = layer - (layerIndex - 2 * layer);
+                z = layer;
+            } else if (layerIndex < 6 * layer) {
+                x = -layer;
+                z = layer - (layerIndex - 4 * layer);
+            } else {
+                x = -layer + (layerIndex - 6 * layer);
+                z = -layer;
+            }
+            islandLocations.put(islandIndex, new Location(world, x, islandSpawnY, z));
+            return new Location(world, x * islandSpacing, islandSpawnY, z * islandSpacing);
+        }
     }
 
     public static Location getIslandIndexFromLocation(Location location) {
