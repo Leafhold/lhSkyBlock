@@ -165,6 +165,7 @@ public class SignShop implements Listener {
                 else player.sendMessage(Component.text("You cannot sell to your own shop").color(NamedTextColor.RED));
                 return;
             }
+
             BlockFace attachedFace = ((Directional) sign.getBlock().getBlockData()).getFacing().getOppositeFace();
             Block chestBlock = sign.getBlock().getRelative(attachedFace);
 
@@ -236,12 +237,10 @@ public class SignShop implements Listener {
                 BlockFace attachedFace = ((Directional) sign.getBlock().getBlockData()).getFacing().getOppositeFace();
                 Block chestBlock = sign.getBlock().getRelative(attachedFace);
                 Location chestLocation = chestBlock.getLocation();
-                Location location = chestBlock.getLocation().add(0, 1.25, 0);
-                if (chestLocation.getX() > 0) location.add(-0.5, 0, 0);
-                else location.add(0.5, 0, 0);
-                if (chestLocation.getZ() > 0) location.add(0, 0, -0.5);
-                else location.add(0, 0, 0.5);
-
+                Location location = chestBlock.getLocation()
+                Double x = chestLocation.getX();
+                Double z = chestLocation.getZ();
+                chestLocation.add(x > 0 ? 0.5 : -0.5, 1.25, z > 0 ? 0.5 : -0.5);
                 
                 String shopUUID = data.get(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING);
                 ItemHologramData hologramData = new ItemHologramData(shopUUID, location);
