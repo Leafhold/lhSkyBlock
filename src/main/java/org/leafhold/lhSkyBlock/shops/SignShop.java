@@ -238,9 +238,9 @@ public class SignShop implements Listener {
                 Block chestBlock = sign.getBlock().getRelative(attachedFace);
                 Location chestLocation = chestBlock.getLocation();
                 Location location = chestBlock.getLocation();
-                Double x = chestLocation.getX();
-                Double z = chestLocation.getZ();
-                chestLocation.add(x > 0 ? 0.5 : -0.5, 1.25, z > 0 ? 0.5 : -0.5);
+                Double x = location.getX();
+                Double z = location.getZ();
+                location.add(x > 0 ? 0.5 : -0.5, 1.25, z > 0 ? 0.5 : -0.5);
                 
                 String shopUUID = data.get(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING);
                 ItemHologramData hologramData = new ItemHologramData(shopUUID, location);
