@@ -372,7 +372,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                     .orElse(null);
                                 if (islandWorld == null) {
                                     WorldCreator creator = new WorldCreator("islands");
-                                    creator.generator(new VoidWorldGenerator(plugin));
+                                    creator.generator(new VoidWorldGenerator());
                                     islandWorld = creator.createWorld();
                                     islandWorld.setDifficulty(org.bukkit.Difficulty.NORMAL);
                                     islandWorld.setPVP(false);
