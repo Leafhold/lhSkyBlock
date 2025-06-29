@@ -237,13 +237,11 @@ public class SignShop implements Listener {
                 BlockFace attachedFace = ((Directional) sign.getBlock().getBlockData()).getFacing().getOppositeFace();
                 Block chestBlock = sign.getBlock().getRelative(attachedFace);
                 Location chestLocation = chestBlock.getLocation();
-                Location location = chestBlock.getLocation();
-                Double x = location.getX();
-                Double z = location.getZ();
-                location.add(x > 0 ? 0.5 : -0.5, 1.25, z > 0 ? 0.5 : -0.5);
+                chestLocation.add(0.5, 1.25, 0.5);
+                player.sendMessage(Component.text("X : " + x + ", Z: " + z).color(NamedTextColor.GREEN));
                 
                 String shopUUID = data.get(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING);
-                ItemHologramData hologramData = new ItemHologramData(shopUUID, location);
+                ItemHologramData hologramData = new ItemHologramData(shopUUID, chestLocation);
                 hologramData.setItemStack(item);
                 hologramData.setScale(new org.joml.Vector3f(0.5f, 0.5f, 0.5f));
                 hologramData.setBillboard(Billboard.FIXED);
