@@ -30,12 +30,12 @@ public class VoidTeleportListener implements Listener {
     @EventHandler
     public void onEntityDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player) {
-            Player player = (Player) event.getEntity();
             if (event.getCause() == DamageCause.VOID) {
-                event.setCancelled(true);
+                Player player = (Player) event.getEntity();
                 World world = player.getWorld();
                 String worldName = world.getName();
                 if (worldName.equalsIgnoreCase(config.getString("main-world"))) {
+
                     Location loc = world.getSpawnLocation();
                     loc.add(0.5, 0, 0.5);
                     loc.setPitch(0);
