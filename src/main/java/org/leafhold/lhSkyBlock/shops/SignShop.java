@@ -136,6 +136,7 @@ public class SignShop implements Listener {
         event.line(3, Component.text(player.getName()).color(NamedTextColor.WHITE));
 
         PersistentDataContainer data = sign.getPersistentDataContainer();
+        data.set(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING, UUID.randomUUID().toString());
         data.set(new NamespacedKey(plugin, "shop_type"), PersistentDataType.STRING, sell ? "sell" : "buy");
         data.set(new NamespacedKey(plugin, "item_amount"), PersistentDataType.INTEGER, amount);
         data.set(new NamespacedKey(plugin, "item_price"), PersistentDataType.DOUBLE, price);
@@ -167,7 +168,6 @@ public class SignShop implements Listener {
             BlockFace attachedFace = ((Directional) sign.getBlock().getBlockData()).getFacing().getOppositeFace();
             Block chestBlock = sign.getBlock().getRelative(attachedFace);
 
-            // Check if the chest contains the item
             Inventory chestInventory = ((InventoryHolder) chestBlock.getState()).getInventory();
             boolean itemFound = false;
             if (chestInventory.containsAtLeast(item, amount)) {
