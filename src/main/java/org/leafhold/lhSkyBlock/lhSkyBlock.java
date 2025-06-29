@@ -12,7 +12,6 @@ import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-
 public final class lhSkyBlock extends JavaPlugin {
     private static lhSkyBlock instance;
     private static boolean isSpigot;
