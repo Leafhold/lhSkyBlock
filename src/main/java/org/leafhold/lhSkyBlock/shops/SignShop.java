@@ -237,7 +237,7 @@ public class SignShop implements Listener {
                 BlockFace attachedFace = ((Directional) sign.getBlock().getBlockData()).getFacing().getOppositeFace();
                 Block chestBlock = sign.getBlock().getRelative(attachedFace);
                 Location chestLocation = chestBlock.getLocation();
-                Location location = chestBlock.getLocation()
+                Location location = chestBlock.getLocation();
                 Double x = chestLocation.getX();
                 Double z = chestLocation.getZ();
                 chestLocation.add(x > 0 ? 0.5 : -0.5, 1.25, z > 0 ? 0.5 : -0.5);
