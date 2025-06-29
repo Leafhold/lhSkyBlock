@@ -56,18 +56,6 @@ tasks.withType(JavaCompile).configureEach {
     }
 }
 
-tasks {
-    runServer {
-        minecraftVersion.set("1.21.5")
-    }
-    shadowJar {
-        archiveClassifier.set('')
-    }
-    build {
-        dependsOn shadowJar
-    }
-}
-
 processResources {
     def props = [version: version]
     inputs.properties props
