@@ -151,6 +151,12 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
             player.sendMessage(Component.text("A shop with this name already exists.").color(NamedTextColor.RED));
             return true;
         }
+        for (String shop : config.getConfigurationSection("shops").getKeys(false)) {
+            if (config.getString("shops." + shop + ".npc", "").equalsIgnoreCase(npcId.toString())) {
+                player.sendMessage(Component.text("A shop with this npc already exists.").color(NamedTextColor.RED));
+                return true;
+            }
+        }
 
         NPC shopNPC = npcRegistry.getById(npcId);
         if (shopNPC == null) {
@@ -480,8 +486,7 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
                                                         economy.withdrawPlayer(player, money);
                                                         player.getInventory().addItem(new ItemStack(transactedItem.getType(), transactedItem.getAmount()));
                                                         player.sendMessage(Component.text("Shop > ").color(NamedTextColor.GREEN)
-                                                            .append(Component.text("You bought " + transactedItem.getType().name() + " x " + transactedItem.getAmount() + " for $" + money)
-                                                                .color(NamedTextColor.GREEN)));
+                                                            .append(Component.text("You bought " + transactedItem.getType().name() + " x " + transactedItem.getAmount() + " for $" + money)));
                                                         player.closeInventory();
                                                     } else {
                                                         player.sendMessage(Component.text("Shop > ").color(NamedTextColor.GREEN)

@@ -395,6 +395,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                     newIslandUUID = (UUID) result[0];
                                     islandIndex = (Integer) result[1];
                                     Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandIndex, islandWorld);
+
                                     String schematicName = config.getString("islands.default-island.schematic");
                                     if (schematicName == null || schematicName.isEmpty()) {
                                         player.sendMessage(Component.text("Island schematic not found in config.").color(NamedTextColor.RED));
