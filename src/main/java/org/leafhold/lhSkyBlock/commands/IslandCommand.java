@@ -190,11 +190,6 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
             return;
         }
         Integer islandIndex = (Integer) ((Object[]) islandData)[4];
-        if (islandData == null) {
-            player.sendMessage(Component.text("Island not found.").color(NamedTextColor.RED));
-            return;
-        }
-
         if (islandIndex < 0) {
             player.sendMessage(Component.text("Invalid island index.").color(NamedTextColor.RED));
             return;
