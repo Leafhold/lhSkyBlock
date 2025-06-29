@@ -101,6 +101,10 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
                 try {
                     Integer npcId = Integer.parseInt(args[1]);
                     String shopName = args[2];
+                    if (config.contains("shops." + npcId)) {
+                        player.sendMessage(Component.text("A shop with this NPC ID already exists.").color(NamedTextColor.RED));
+                        return true;
+                    }
                     return createShop(player, npcId, shopName);
                 } catch (NumberFormatException e) {
                     player.sendMessage(Component.text("Invalid NPC ID. Please provide a valid number.").color(NamedTextColor.RED));
