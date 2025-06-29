@@ -9,7 +9,6 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,15 +19,11 @@ import java.util.ArrayList;
 public class DatabaseManager {
     private static HikariConfig hikariConfig;
     private static HikariDataSource dataSource;
-    private static FileConfiguration config;
     private static lhSkyBlock plugin;
 
     public DatabaseManager(lhSkyBlock plugin) {
         this.plugin = plugin;
-        config = plugin.getConfig();
     }
-
-    private DatabaseManager() {}
 
     public static DatabaseManager getInstance() {
         return new DatabaseManager(lhSkyBlock.getInstance());

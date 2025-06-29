@@ -16,12 +16,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.Bukkit;
 
 public class PlayerJoinListener implements Listener {
-    private final lhSkyBlock plugin;
     private static FileConfiguration config;
     private static boolean bJoinMessage;
 
     public PlayerJoinListener(lhSkyBlock plugin) {
-        this.plugin = plugin;
         config = plugin.getConfig();
         bJoinMessage = config.getBoolean("join_message", true);
     }
@@ -30,7 +28,6 @@ public class PlayerJoinListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         World world = player.getWorld();
-        Location location = player.getLocation();
 
         if (bJoinMessage) {
             event.joinMessage(null);

@@ -3,8 +3,6 @@ package org.leafhold.lhSkyBlock.listeners;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
 import org.leafhold.lhSkyBlock.islands.IslandSpawning;
 
-import net.kyori.adventure.text.Component;
-
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -13,7 +11,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.util.Vector;
 import org.bukkit.Bukkit;
@@ -50,7 +47,7 @@ public class VoidTeleportListener implements Listener {
                     islandSpawnLocation.setYaw(180);
                     islandSpawnLocation.add(0.5, 1, -0.5);
                     player.setInvulnerable(true);
-                    var playerTeleport = player.teleportAsync(islandSpawnLocation, TeleportCause.PLUGIN).thenRun(() -> {
+                    player.teleportAsync(islandSpawnLocation, TeleportCause.PLUGIN).thenRun(() -> {
                         Bukkit.getScheduler().runTaskLater(plugin, () -> {
                             player.setFallDistance(0);
                             player.setVelocity(new Vector(0, 0, 0));

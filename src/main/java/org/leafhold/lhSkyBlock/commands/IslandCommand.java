@@ -377,7 +377,6 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                     islandWorld.setDifficulty(org.bukkit.Difficulty.NORMAL);
                                     islandWorld.setPVP(false);
                                 }
-                                UUID newIslandUUID;
                                 Integer islandIndex;
                                 Object[] result = databaseManager.createIsland(
                                     player.getUniqueId(),
@@ -386,7 +385,6 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                 );
                                 
                                 if (result != null) {
-                                    newIslandUUID = (UUID) result[0];
                                     islandIndex = (Integer) result[1];
                                     Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandIndex, islandWorld);
 

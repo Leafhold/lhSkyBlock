@@ -7,7 +7,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.Directional;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Display.Billboard;
 import org.bukkit.event.EventHandler;
@@ -17,29 +16,25 @@ import org.bukkit.event.Listener;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
-import net.citizensnpcs.api.persistence.Persist;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.md_5.bungee.api.chat.hover.content.Item;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+
 import de.oliver.fancyholograms.api.FancyHologramsPlugin;
 import de.oliver.fancyholograms.api.HologramManager;
 import de.oliver.fancyholograms.api.data.ItemHologramData;
-import de.oliver.fancyholograms.api.data.TextHologramData;
 import de.oliver.fancyholograms.api.hologram.Hologram;
 
 import java.util.UUID;
 
 public class SignShop implements Listener {
     private static lhSkyBlock plugin;
-    private static FileConfiguration config;
 
     public SignShop(lhSkyBlock plugin) {
         this.plugin = plugin;
-        config = plugin.getConfig();
     }
 
     private boolean isSignShop(Block block) {
@@ -82,7 +77,9 @@ public class SignShop implements Listener {
         if (attachedFace == BlockFace.DOWN || attachedFace == BlockFace.UP) return;
         if (relativeBlock == null || !relativeBlock.getType().toString().toLowerCase().contains("chest")) return;
 
-        String[] lines = event.getLines();
+        String[] lines = event.lines().stream()
+            .map(component -> component == null ? "" : PlainTextComponentSerializer.plainText().serialize(component))
+            .toArray(String[]::new);
 
         if (!lines[0].equalsIgnoreCase("[sell]") && !lines[0].equalsIgnoreCase("[buy]")) return;
         Boolean sell = "[sell]".equalsIgnoreCase(lines[0]);
