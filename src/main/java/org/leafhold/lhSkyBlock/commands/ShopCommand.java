@@ -101,10 +101,6 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
                 try {
                     Integer npcId = Integer.parseInt(args[1]);
                     String shopName = args[2];
-                    if (config.contains("shops." + npcId)) {
-                        player.sendMessage(Component.text("A shop with this NPC ID already exists.").color(NamedTextColor.RED));
-                        return true;
-                    }
                     return createShop(player, npcId, shopName);
                 } catch (NumberFormatException e) {
                     player.sendMessage(Component.text("Invalid NPC ID. Please provide a valid number.").color(NamedTextColor.RED));
@@ -154,6 +150,12 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
         if (config.contains("shops." + shopName)) {
             player.sendMessage(Component.text("A shop with this name already exists.").color(NamedTextColor.RED));
             return true;
+        }
+        for (String shop : config.getConfigurationSection("shops").getKeys(false)) {
+            if (config.getString("shops." + shop + ".npc", "").equalsIgnoreCase(npcId.toString())) {
+                player.sendMessage(Component.text("A shop with this npc already exists.").color(NamedTextColor.RED));
+                return true;
+            }
         }
 
         NPC shopNPC = npcRegistry.getById(npcId);
