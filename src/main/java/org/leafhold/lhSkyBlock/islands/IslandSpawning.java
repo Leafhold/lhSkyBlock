@@ -20,6 +20,7 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 
 import com.fastasyncworldedit.core.util.TaskManager;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.World;
@@ -145,8 +146,8 @@ public class IslandSpawning {
 
     public static boolean deleteIsland(Location location) {
         if (location == null || location.getWorld() == null) return false;
-        Location islandLocation = getIslandIndexFromLocation(location);
-        if (islandLocation == null) return false;
+        Integer islandIndex = getIslandIndexFromLocation(location);
+        Location islandLocation = getIslandSpawnLocation(islandIndex, Bukkit.getWorld("islands"));
 
         Integer minY = islandLocation.getWorld().getMinHeight();
         Integer maxY = islandLocation.getWorld().getMaxHeight() - 1;
