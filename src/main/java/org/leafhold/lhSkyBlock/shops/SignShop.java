@@ -238,7 +238,8 @@ public class SignShop implements Listener {
                 Block chestBlock = sign.getBlock().getRelative(attachedFace);
                 Location chestLocation = chestBlock.getLocation();
                 chestLocation.add(0.5, 1.25, 0.5);
-                player.sendMessage(Component.text("X : " + x + ", Z: " + z).color(NamedTextColor.GREEN));
+                Float yaw = getYawFromFacing(attachedFace);
+                chestLocation.setYaw(yaw);
                 
                 String shopUUID = data.get(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING);
                 ItemHologramData hologramData = new ItemHologramData(shopUUID, chestLocation);
@@ -297,6 +298,16 @@ public class SignShop implements Listener {
                     manager.removeHologram(hologram);
                 }
             }
+        }
+    }
+
+    private float getYawFromFacing(BlockFace face) {
+        switch (face) {
+            case NORTH: return 180f;
+            case SOUTH: return 0f;
+            case WEST: return 90f;
+            case EAST: return -90f;
+            default: return 0f;
         }
     }
 }
