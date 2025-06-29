@@ -201,7 +201,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
             return;
         }
 
-        Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandIndex, Bukkit.getWorld("islands")).clone();
+        Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandIndex, Bukkit.getWorld("islands"));
         if (islandLocation == null) {
             player.sendMessage(Component.text("Island location not found.").color(NamedTextColor.RED));
             return;
