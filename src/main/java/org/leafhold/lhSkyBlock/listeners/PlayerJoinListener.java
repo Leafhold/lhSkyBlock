@@ -39,7 +39,7 @@ public class PlayerJoinListener implements Listener {
         World mainWorld = Bukkit.getWorld(config.getString("main-world"));
         if (world == null || world == mainWorld) {
             Location loc = mainWorld.getSpawnLocation();
-            loc.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5);
+            loc.add(0.5, 0, 0.5);
             loc.setPitch(0);
             loc.setYaw(180);
             player.teleportAsync(loc, TeleportCause.PLUGIN);

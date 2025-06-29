@@ -33,7 +33,7 @@ public class VoidTeleportListener implements Listener {
                 if (worldName.equalsIgnoreCase(config.getString("main-world"))) {
 
                     Location loc = world.getSpawnLocation();
-                    loc.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5);
+                    loc.add(0.5, 0, -0.5);
                     loc.setPitch(0);
                     loc.setYaw(180);
                     player.teleportAsync(loc, TeleportCause.PLUGIN);
@@ -51,7 +51,7 @@ public class VoidTeleportListener implements Listener {
                     }
                     spawnLocation.setPitch(0);
                     spawnLocation.setYaw(180);
-                    spawnLocation.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5);
+                    spawnLocation.add(0.5, 1, -0.5);
                     player.teleportAsync(spawnLocation, TeleportCause.PLUGIN);
                     return;
                 }
