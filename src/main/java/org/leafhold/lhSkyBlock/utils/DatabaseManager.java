@@ -245,4 +245,34 @@ public class DatabaseManager {
             return null;
         }
     }
+
+    public boolean islandExistsByUUID(String islandUUID) {
+        String sql = "SELECT COUNT(*) FROM islands WHERE uuid = ?";
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, islandUUID);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to check if island exists: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean islandExistsByIndex(int islandIndex) {
+        String sql = "SELECT COUNT(*) FROM islands WHERE island_index = ?";
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, islandIndex);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to check if island exists: " + e.getMessage());
+        }
+        return false;
+    }
 }

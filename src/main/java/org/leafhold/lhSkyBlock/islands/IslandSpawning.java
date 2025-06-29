@@ -121,7 +121,7 @@ public class IslandSpawning {
         }
     }
 
-    public static Location getIslandIndexFromLocation(Location location) {
+    public static Integer getIslandIndexFromLocation(Location location) {
         if (location == null || location.getWorld() == null) {
             plugin.getLogger().severe("Invalid location");
             return null;
@@ -137,7 +137,7 @@ public class IslandSpawning {
             Integer distanceZ = Math.abs(location.getBlockZ() - island.getBlockZ());
             Integer islandSpacing = config.getInt("islands.spacing");
             if (distanceX <= islandSpacing / 2 && distanceZ <= islandSpacing / 2) {
-                return new Location(world, island.getBlockX(), island.getBlockY(), island.getBlockZ());
+                return index;
             }
         }
         return null;
