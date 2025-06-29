@@ -6,10 +6,12 @@ db:
   password: skyblock
   pool-size: 10
 
-main_world: world
+main-world: world
+join-message: true
+keep-inventory: true # Keep inventory on death (only works outside combat)
 
 islands:
   default-island:
     schematic: default_island.schematic # Default island schematic file
   y-coordinate: 100 # Y-coordinate for island spawn
-  spacing: 1024 # Spacing between islands in blocks
+  spacing: 512 # Spacing between islands in blocks, DO NOT change without regenerating islands

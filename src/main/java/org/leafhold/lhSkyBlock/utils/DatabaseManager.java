@@ -67,6 +67,8 @@ public class DatabaseManager {
             hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
             dataSource = new HikariDataSource(hikariConfig);
+
+            createTable();
         } catch (Exception e) {
             lhSkyBlock.getInstance().getLogger().severe("Failed to configure HikariCP: " + e.getMessage());
             throw new SQLException("HikariCP configuration failed");
@@ -82,13 +84,13 @@ public class DatabaseManager {
 
     private void createTable() throws SQLException {
         String islandTable = "CREATE TABLE IF NOT EXISTS islands (" +
-            "island_index INT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
+            "island_index INT NOT NULL PRIMARY KEY," +
             "uuid CHAR(36) NOT NULL UNIQUE," +
             "owner CHAR(36) NOT NULL," +
             "name TEXT NOT NULL," +
             "world TEXT NOT NULL," +
             "is_public BOOLEAN NOT NULL DEFAULT false," +
-            "UNIQUE (world, island_index)" +
+            "UNIQUE (island_index, world)" +
             ");";
         String memberTable =
             "CREATE TABLE IF NOT EXISTS island_members (" +
@@ -96,8 +98,9 @@ public class DatabaseManager {
             "member_uuid CHAR(36) NOT NULL," +
             "role TEXT NOT NULL DEFAULT 'member'," +
             "PRIMARY KEY (island_uuid, member_uuid)," +
-            "FOREIGN KEY (island_uuid) REFERENCES islands(uuid));";
-        
+            "FOREIGN KEY (island_uuid) REFERENCES islands(uuid)" +
+            ");";
+
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(islandTable);
             preparedStatement.executeUpdate();
@@ -121,19 +124,37 @@ public class DatabaseManager {
             preparedStatement.close();
         }
         UUID islandUUID = java.util.UUID.randomUUID();
-        // Integer islandIndex = 0;
+        int islandIndex = -1;
 
-        sql = "INSERT INTO islands (uuid, owner, name, world) VALUES (?, ?, ?, ?)";
+        sql = "INSERT INTO islands (uuid, owner, name, world, island_index) VALUES (?, ?, ?, ?, ?)";
         try (Connection connection = dataSource.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            Integer newIslandIndex = getNewIslandIndex();
+            if (newIslandIndex == null) {
+                throw new SQLException("Failed to get new island index");
+            }
+            PreparedStatement preparedStatement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, islandUUID.toString());
             preparedStatement.setString(2, ownerUUID.toString());
             preparedStatement.setString(3, name);
             preparedStatement.setString(4, world);
+            preparedStatement.setInt(5, newIslandIndex);
             preparedStatement.executeUpdate();
+            ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                islandIndex = generatedKeys.getInt(1);
+            } else {
+                String fetchSql = "SELECT island_index FROM islands WHERE uuid = ?";
+                PreparedStatement fetchStmt = connection.prepareStatement(fetchSql);
+                fetchStmt.setString(1, islandUUID.toString());
+                ResultSet rs = fetchStmt.executeQuery();
+                if (rs.next()) {
+                    islandIndex = rs.getInt("island_index");
+                }
+                fetchStmt.close();
+            }
             preparedStatement.close();
         }
-        return new Object[] { islandUUID };
+        return new Object[] { islandUUID, islandIndex };
     }
 
     public List<Object> getIslandsByOwner(String ownerUUID) throws SQLException {
@@ -155,7 +176,7 @@ public class DatabaseManager {
     }
 
     public Object getIslandByUUID(UUID islandUUID) throws SQLException {
-        String sql = "SELECT uuid, owner, name, is_public FROM islands WHERE uuid = ?";
+        String sql = "SELECT uuid, owner, name, is_public, island_index FROM islands WHERE uuid = ?";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, islandUUID.toString());
@@ -165,7 +186,8 @@ public class DatabaseManager {
                 String owner = resultSet.getString("owner");
                 String name = resultSet.getString("name");
                 boolean isPublic = resultSet.getBoolean("is_public");
-                return new Object[] { uuid, owner, name, isPublic };
+                Integer islandIndex = resultSet.getInt("island_index");
+                return new Object[] { uuid, owner, name, isPublic, islandIndex };
             }
         }
         return null;
@@ -186,7 +208,7 @@ public class DatabaseManager {
     }
 
     public void toggleVisitors(UUID islandUUID) throws SQLException {
-        String sql = "UPDATE is_islands SET public = NOT is_public WHERE uuid = ?";
+        String sql = "UPDATE islands SET is_public = NOT is_public WHERE uuid = ?";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, islandUUID.toString());
@@ -206,6 +228,26 @@ public class DatabaseManager {
             } else {
                 return true;
             }
+        }
+    }
+
+    private Integer getNewIslandIndex() {
+        String sql = "SELECT island_index FROM islands ORDER BY island_index ASC";
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            int expected = 0;
+            while (resultSet.next()) {
+                int current = resultSet.getInt("island_index");
+                if (current != expected) {
+                    return expected;
+                }
+                expected++;
+            }
+            return expected;
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to get new island index: " + e.getMessage());
+            return null;
         }
     }
 }
