@@ -38,7 +38,7 @@ public class IslandSpawning {
     private static Map<Integer, Location> islandLocations = new HashMap<>();
     
     public IslandSpawning(lhSkyBlock plugin) {
-        this.plugin = plugin;
+        IslandSpawning.plugin = plugin;
         config = plugin.getConfig();
         islandSpawnY = config.getInt("islands.y-coordinate");
         islandSpacing = config.getInt("islands.spacing");

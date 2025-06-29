@@ -39,8 +39,8 @@ import java.util.HashMap;
 import java.io.File;
 
 public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
-    private static lhSkyBlock plugin;
-    private static FileConfiguration config;
+    private lhSkyBlock plugin;
+    private FileConfiguration config;
     private DatabaseManager databaseManager;
     private final Map<UUID, Long> visitorToggleCooldown = new HashMap<>();
     private static final long COOLDOWN_TIME = 5000;

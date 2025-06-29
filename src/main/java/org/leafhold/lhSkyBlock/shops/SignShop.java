@@ -31,7 +31,7 @@ import de.oliver.fancyholograms.api.hologram.Hologram;
 import java.util.UUID;
 
 public class SignShop implements Listener {
-    private static lhSkyBlock plugin;
+    private lhSkyBlock plugin;
 
     public SignShop(lhSkyBlock plugin) {
         this.plugin = plugin;

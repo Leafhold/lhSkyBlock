@@ -17,9 +17,9 @@ import java.util.UUID;
 import java.util.ArrayList;
 
 public class DatabaseManager {
+    private lhSkyBlock plugin;
     private static HikariConfig hikariConfig;
     private static HikariDataSource dataSource;
-    private static lhSkyBlock plugin;
 
     public DatabaseManager(lhSkyBlock plugin) {
         this.plugin = plugin;
@@ -29,7 +29,7 @@ public class DatabaseManager {
         return new DatabaseManager(lhSkyBlock.getInstance());
     }
 
-    public static Connection getConnection() {
+    public Connection getConnection() {
         try {
             if (dataSource == null) {
                 dataSource = new HikariDataSource(hikariConfig);
