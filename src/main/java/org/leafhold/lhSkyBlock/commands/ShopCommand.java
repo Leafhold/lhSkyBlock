@@ -480,8 +480,7 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
                                                         economy.withdrawPlayer(player, money);
                                                         player.getInventory().addItem(new ItemStack(transactedItem.getType(), transactedItem.getAmount()));
                                                         player.sendMessage(Component.text("Shop > ").color(NamedTextColor.GREEN)
-                                                            .append(Component.text("You bought " + transactedItem.getType().name() + " x " + transactedItem.getAmount() + " for $" + money)
-                                                                .color(NamedTextColor.GREEN)));
+                                                            .append(Component.text("You bought " + transactedItem.getType().name() + " x " + transactedItem.getAmount() + " for $" + money)));
                                                         player.closeInventory();
                                                     } else {
                                                         player.sendMessage(Component.text("Shop > ").color(NamedTextColor.GREEN)
