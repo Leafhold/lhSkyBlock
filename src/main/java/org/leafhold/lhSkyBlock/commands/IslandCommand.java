@@ -202,7 +202,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
         }
         islandLocation.setPitch(0);
         islandLocation.setYaw(180);
-        islandLocation.add(0.5, 1, -0.5);
+        islandLocation.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5);
         player.teleportAsync(islandLocation);
     }
 
@@ -405,7 +405,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                         return;
                                     }
                                     player.sendMessage(Component.text("Island created successfully!").color(NamedTextColor.GREEN));
-                                    player.teleport(islandLocation.add(0.5, 1, -0.5).setRotation(180, 0));
+                                    player.teleport(islandLocation.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5).setRotation(180, 0));
                                 } else {
                                     player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
                                 }
@@ -451,7 +451,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                         player.sendMessage(Component.text("Deleting island...").color(NamedTextColor.AQUA));
                                         if (player.getLocation().getWorld().getName().equals("islands")) {
                                             if (IslandSpawning.getIslandIndexFromLocation(player.getLocation()) == ((Object[]) islandData)[4]) {
-                                                player.teleportAsync(Bukkit.getWorld("world").getSpawnLocation().add(0.5, 1, -0.5).setRotation(180, 0));
+                                                player.teleportAsync(Bukkit.getWorld("world").getSpawnLocation().add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5).setRotation(180, 0));
                                             }
                                         };
                                         Boolean deleted = IslandSpawning.deleteIsland(islandLocation);

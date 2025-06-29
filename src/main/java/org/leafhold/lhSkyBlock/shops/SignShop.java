@@ -165,6 +165,7 @@ public class SignShop implements Listener {
                 else player.sendMessage(Component.text("You cannot sell to your own shop").color(NamedTextColor.RED));
                 return;
             }
+
             BlockFace attachedFace = ((Directional) sign.getBlock().getBlockData()).getFacing().getOppositeFace();
             Block chestBlock = sign.getBlock().getRelative(attachedFace);
 
@@ -179,7 +180,7 @@ public class SignShop implements Listener {
                 return;
             }
 
-            if (shopType.equals("sell")) {
+            if (shopType.equals("buy")) {
                 if (economy.getBalance(player) < price) {
                     player.sendMessage(Component.text("You do not have enough money to buy this item").color(NamedTextColor.RED));
                     return;
@@ -195,8 +196,8 @@ public class SignShop implements Listener {
                     chestInventory.addItem(toRemove);
                     economy.withdrawPlayer(player, amount);
                     economy.depositPlayer(owner, price);
-                    player.sendMessage(Component.text("Sign shop >").color(NamedTextColor.GREEN)
-                        .append(Component.text(" Bought " + amount + " " + item.getType().name() + " for $" + price)));
+                    player.sendMessage(Component.text("Sign shop > ").color(NamedTextColor.GREEN)
+                        .append(Component.text("Sold " + amount + " " + item.getType().name() + " for $" + price).color(NamedTextColor.WHITE)));
                 }
                 else {
                     player.sendMessage(Component.text("You do not have enough items to sell").color(NamedTextColor.RED));
@@ -218,6 +219,8 @@ public class SignShop implements Listener {
                     toAdd.setAmount(amount);
                     chestInventory.removeItem(toAdd);
                     player.getInventory().addItem(toAdd);
+                    player.sendMessage(Component.text("Sign shop > ").color(NamedTextColor.GREEN)
+                        .append(Component.text("Bought " + amount + " " + item.getType().name() + " for $" + price).color(NamedTextColor.WHITE)));
                 } else {
                     player.sendMessage(Component.text("The shop does not have enough items to complete the transaction").color(NamedTextColor.RED));
                     return;
@@ -236,11 +239,7 @@ public class SignShop implements Listener {
                 BlockFace attachedFace = ((Directional) sign.getBlock().getBlockData()).getFacing().getOppositeFace();
                 Block chestBlock = sign.getBlock().getRelative(attachedFace);
                 Location chestLocation = chestBlock.getLocation();
-                Location location = chestBlock.getLocation().add(0, 1.25, 0);
-                if (chestLocation.getX() > 0) location.add(-0.5, 0, 0);
-                else location.add(0.5, 0, 0);
-                if (chestLocation.getZ() > 0) location.add(0, 0, -0.5);
-                else location.add(0, 0, 0.5);
+                Location location = chestBlock.getLocation().add(x > 0 ? 0.5 : -0.5, 1.25, z > 0 ? 0.5 : -0.5);
 
                 
                 String shopUUID = data.get(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING);
