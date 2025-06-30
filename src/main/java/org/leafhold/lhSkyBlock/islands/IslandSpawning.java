@@ -18,6 +18,13 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldguard.protection.flags.Flags;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.managers.storage.StorageException;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.flags.StateFlag.State;
 
 import com.fastasyncworldedit.core.util.TaskManager;
 
@@ -30,6 +37,7 @@ import org.bukkit.WorldCreator;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -179,7 +187,11 @@ public class IslandSpawning {
     public static World loadWorld() {
         World islandWorld = Bukkit.getWorld("islands");
         if (islandWorld != null) {
-            plugin.getLogger().info("The 'islands' world is already loaded.");
+            return islandWorld;
+        }
+        boolean doesWorldExist = Files.exists(Bukkit.getWorldContainer().toPath().resolve("islands"));
+        if (doesWorldExist) {
+            islandWorld = Bukkit.createWorld(new WorldCreator("islands"));
             return islandWorld;
         }
         WorldCreator creator = new WorldCreator("islands");
@@ -187,6 +199,32 @@ public class IslandSpawning {
         islandWorld = creator.createWorld();
         islandWorld.setDifficulty(org.bukkit.Difficulty.NORMAL);
         islandWorld.setPVP(false);
+        RegionContainer regionContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
+        RegionManager regions = regionContainer.get(BukkitAdapter.adapt(islandWorld));
+        if (regions != null && regions.hasRegion("__global__")) {
+            ProtectedRegion globalRegion = regions.getRegion("__global__");
+            if (globalRegion != null) {
+                globalRegion.setFlag(Flags.BUILD, State.DENY);
+                globalRegion.setFlag(Flags.CHEST_ACCESS, State.DENY);
+                globalRegion.setFlag(Flags.CROP_GROWTH, State.DENY);
+                globalRegion.setFlag(Flags.OTHER_EXPLOSION, State.DENY);
+                globalRegion.setFlag(Flags.BLOCK_PLACE, State.DENY);
+                globalRegion.setFlag(Flags.BLOCK_BREAK, State.DENY);
+                globalRegion.setFlag(Flags.PVP, State.DENY);
+                globalRegion.setFlag(Flags.MOB_SPAWNING, State.DENY);
+                globalRegion.setFlag(Flags.CREEPER_EXPLOSION, State.DENY);
+                globalRegion.setFlag(Flags.ENDER_BUILD, State.DENY);
+                globalRegion.setFlag(Flags.TNT, State.DENY);
+                globalRegion.setFlag(Flags.FIRE_SPREAD, State.DENY);
+                globalRegion.setFlag(Flags.LIGHTER, State.DENY);
+                globalRegion.setFlag(Flags.GHAST_FIREBALL, State.DENY);
+                try {
+                    regions.save();
+                } catch (StorageException e) {
+                    plugin.getLogger().severe("Failed to save WorldGuard regions: " + e.getMessage());
+                }
+            }
+        }
         return islandWorld;
     }
 }

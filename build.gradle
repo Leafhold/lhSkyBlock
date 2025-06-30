@@ -26,6 +26,7 @@ dependencies {
     }
     compileOnly("de.oliver:FancyHolograms:2.5.0")
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit:2.13.0")
+    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.13")
     implementation("com.zaxxer:HikariCP:6.3.0")
 }
 
