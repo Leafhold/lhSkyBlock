@@ -1,0 +1,97 @@
+enchantments:
+  auto_smelt:
+    name: "Auto-smelt"
+    enabled: true
+    description: "Automatically smelts ores when mined."
+    type: "pickaxe"
+    base-multiplier: 0.34
+    multiplier-increase-per-level: 0.33
+    max-level: 3
+  soulbound:
+    name: "Soulbound"
+    enabled: true
+    description: "Chance to keep items on death."
+    type: "armor"
+    base-multiplier: 0.5
+    multiplier-increase-per-level: 0.15
+    max-level: 2
+  lightning:
+    name: "Lighting"
+    enabled: true
+    description: "Chance to strike lightning on hit."
+    type: "sword"
+    base-multiplier: 0.1
+    multiplier-increase-per-level: 0.05
+    max-level: 2
+  vampirism:
+    name: "Vampirism"
+    enabled: true
+    description: "Chance to heal on hit."
+    type: "weapons"
+    max-level: 1
+  disarm:
+    name: "Disarm"
+    enabled: true
+    description: "Chance to disarm the target."
+    type: "weapons"
+    base-multiplier: 0.05
+    max-level: 1
+  wither:
+    name: "Wither"
+    enabled: true
+    description: "Chance to apply Wither effect on hit."
+    type: "weapons"
+    base-multiplier: 0.1
+    max-level: 1
+  anchor:
+    name: "Anchor"
+    enabled: true
+    description: "Reduces knockback taken."
+    type: "armor"
+    base-multiplier: 0.5
+    max-level: 1
+  explosive_arrows:
+    name: "Explosive Arrows"
+    enabled: true
+    description: "Makes arrows explode on impact."
+    type: "bow"
+    base-multiplier: 0.25
+    max-level: 1
+
+probability:
+  auto_smelt:
+    overall: 0.15
+    level:
+      1: 0.6
+      2: 0.3
+      3: 0.1
+  soulbound:
+    overall: 0.10
+    level:
+      1: 0.8
+      2: 0.2
+  lightning:
+    overall: 0.08
+    level:
+      1: 0.6
+      2: 0.4
+  vampirism:
+    overall: 0.07
+    level:
+      1: 1.0
+  disarm:
+    overall: 0.12
+    level:
+      1: 1.0
+  wither:
+    overall: 0.10
+    level:
+      1: 1.0
+  anchor:
+    overall: 0.18
+    level:
+      1: 1.0
+  explosive_arrows:
+    overall: 0.20
+    level:
+      1: 1.0
