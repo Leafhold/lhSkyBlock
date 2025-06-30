@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.io.File;
+import java.sql.ResultSet;
 
 public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
     private lhSkyBlock plugin;
@@ -193,6 +194,10 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
         }
         Object[] islandObj = (Object[]) islandData;
         Integer islandIndex = (Integer) islandObj[4];
+        if (islandData == null) {
+            player.sendMessage(Component.text("Island not found.").color(NamedTextColor.RED));
+            return;
+        }
         if (islandIndex < 0) {
             player.sendMessage(Component.text("Invalid island index.").color(NamedTextColor.RED));
             return;
@@ -452,7 +457,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                                 Location spawnLocation = Bukkit.getWorld("world").getSpawnLocation();
                                                 Double x = spawnLocation.getX();
                                                 Double z = spawnLocation.getZ();
-                                                player.teleportAsync(spawnLocation.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5).setRotation(180, 0));
+                                                player.teleportAsync(spawnLocation.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5).setRotation(180, 0))
                                             }
                                         };
                                         Boolean deleted = IslandSpawning.deleteIsland(islandLocation);
