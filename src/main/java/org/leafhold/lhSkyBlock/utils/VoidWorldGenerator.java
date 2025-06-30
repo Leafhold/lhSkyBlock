@@ -1,14 +1,10 @@
 package org.leafhold.lhSkyBlock.utils;
 
-import org.leafhold.lhSkyBlock.lhSkyBlock;
-
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.generator.WorldInfo;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
-import org.bukkit.Location;
 import org.bukkit.generator.BiomeProvider;
 
 
@@ -19,13 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class VoidWorldGenerator extends ChunkGenerator {
-    private static lhSkyBlock plugin;
-    private static FileConfiguration config;
 
-    public VoidWorldGenerator(lhSkyBlock plugin) {
-        this.plugin = plugin;
-        config = plugin.getConfig();
-    }
+    public VoidWorldGenerator() {}
 
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
         return new VoidChunkGenerator(worldName);
@@ -62,11 +53,8 @@ class VoidChunkGenerator extends ChunkGenerator {
         public boolean canSpawn(World world, int x, int z) { return true; }
 
     private class VoidBiomeProvider extends BiomeProvider {
-        private final String worldName;
 
-        private VoidBiomeProvider(String worldName) {
-            this.worldName = worldName;
-        }
+        private VoidBiomeProvider(String worldName) {}
 
         @Override
         public @NotNull Biome getBiome(@NotNull WorldInfo worldInfo, int x, int y, int z) {

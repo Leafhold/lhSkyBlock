@@ -1,7 +1,6 @@
 plugins {
     id 'java'
-    id 'xyz.jpenilla.run-paper' version '2.3.1'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id("com.gradleup.shadow") version "8.3.7"
 }
 
 group = 'org.leafhold'
@@ -27,6 +26,7 @@ dependencies {
     }
     compileOnly("de.oliver:FancyHolograms:2.5.0")
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit:2.13.0")
+    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.13")
     implementation("com.zaxxer:HikariCP:6.3.0")
 }
 
@@ -43,9 +43,6 @@ tasks {
     build {
         dependsOn shadowJar
     }
-    compileOnly 'de.oliver:FancyHolograms:2.5.0'
-    compileOnly 'com.sk89q.worldedit:worldedit-bukkit:7.3.14'
-    implementation 'com.zaxxer:HikariCP:6.3.0'
 }
 
 def targetJavaVersion = 21
@@ -63,18 +60,6 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release.set(targetJavaVersion)
-    }
-}
-
-tasks {
-    runServer {
-        minecraftVersion.set("1.21.5")
-    }
-    shadowJar {
-        archiveClassifier.set('')
-    }
-    build {
-        dependsOn shadowJar
     }
 }
 

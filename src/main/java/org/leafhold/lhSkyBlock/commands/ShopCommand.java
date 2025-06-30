@@ -10,9 +10,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.checkerframework.checker.units.qual.min;
-import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.Inventory;
@@ -25,7 +22,6 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.command.TabCompleter;
 
-import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
 import org.leafhold.lhSkyBlock.shops.ShopHolder;
 
@@ -34,27 +30,24 @@ import net.citizensnpcs.api.npc.NPCRegistry;
 import net.citizensnpcs.api.npc.NPC;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 import net.milkbowl.vault.economy.Economy;
 
-import java.util.UUID;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
     private lhSkyBlock plugin;
-    private DatabaseManager databaseManager;
     private FileConfiguration config;
     private NPCRegistry npcRegistry;
     private Economy economy;
 
     public ShopCommand(lhSkyBlock plugin) {
         this.plugin = plugin;
-        databaseManager = DatabaseManager.getInstance();
 
         File configFile = new File(plugin.getDataFolder(), "shops.yml");
         if (!configFile.exists()) {
@@ -82,7 +75,6 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
             return true;
         }
         Player player = (Player) sender;
-        UUID uuid = player.getUniqueId();
 
         if (args.length == 0) {
             return true;
@@ -194,8 +186,6 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
                 Integer defaultAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".default_amount", 1);
                 Double sellPrice = config.getDouble("shops." + shopName + ".items." + itemKey + ".sell.price");
                 Double buyPrice = config.getDouble("shops." + shopName + ".items." + itemKey + ".buy.price");
-                Integer minSellAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".sell.min_amount", 1);
-                Integer minBuyAmount = config.getInt("shops." + shopName + ".items." + itemKey + ".buy.min_amount", 1);
                 
                 if (item != null && slot >= 0 && slot < shopInventory.getSize()) {
                     item.setAmount(defaultAmount);
@@ -220,7 +210,7 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
         }
     }
 
-    private void openTransactionMenu(Player player, String shopName, ItemStack item) {
+    private void openTransactionMenu(Player player, Component shopName, ItemStack item) {
         String shopKey = null;
         Double price;
         boolean isBuying = item.getItemMeta().getPersistentDataContainer()
@@ -234,7 +224,7 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
         if (config.getConfigurationSection("shops") != null) {
             for (String shop : config.getConfigurationSection("shops").getKeys(false)) {
                 String shopNameKey = config.getString("shops." + shop + ".name", shop);
-                if (shopName.equalsIgnoreCase(shopNameKey)) {
+                if (shopName != null && PlainTextComponentSerializer.plainText().serialize(shopName).equalsIgnoreCase(shopNameKey)) {
                     shopKey = shop;
                     break;
                 }
@@ -427,7 +417,6 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
                     
                     if (itemRole != null) {
                         ItemStack item = event.getCurrentItem();
-                        Integer amount = item.getAmount();
                         Double price;
                         if (item.getItemMeta().getPersistentDataContainer()
                             .has(new NamespacedKey(plugin, "item_buy_price"), PersistentDataType.DOUBLE)) {
@@ -447,12 +436,12 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
                                     ItemMeta itemMeta = item.getItemMeta();
                                     itemMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_buying"), PersistentDataType.BOOLEAN, true);
                                     item.setItemMeta(itemMeta);
-                                    openTransactionMenu(player, event.getView().getTitle(), item);
+                                    openTransactionMenu(player, event.getView().title(), item);
                                 } else if (event.isRightClick() && sellPrice != null) {
                                     ItemMeta itemMeta = item.getItemMeta();
                                     itemMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "item_buying"), PersistentDataType.BOOLEAN, false);
                                     item.setItemMeta(itemMeta);
-                                    openTransactionMenu(player, event.getView().getTitle(), item);
+                                    openTransactionMenu(player, event.getView().title(), item);
                                 }
                                 break;
                             case "transaction_item":

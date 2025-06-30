@@ -9,12 +9,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 public class PlayerDeathListener implements Listener {
-    private final lhSkyBlock plugin;
     private static FileConfiguration config;
     private static boolean keepInventory;
 
     public PlayerDeathListener(lhSkyBlock plugin) {
-        this.plugin = plugin;
         config = plugin.getConfig();
         keepInventory = config.getBoolean("keep-inventory", false);
     }

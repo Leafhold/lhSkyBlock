@@ -9,7 +9,6 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,23 +17,19 @@ import java.util.UUID;
 import java.util.ArrayList;
 
 public class DatabaseManager {
+    private lhSkyBlock plugin;
     private static HikariConfig hikariConfig;
     private static HikariDataSource dataSource;
-    private static FileConfiguration config;
-    private static lhSkyBlock plugin;
 
     public DatabaseManager(lhSkyBlock plugin) {
         this.plugin = plugin;
-        config = plugin.getConfig();
     }
-
-    private DatabaseManager() {}
 
     public static DatabaseManager getInstance() {
         return new DatabaseManager(lhSkyBlock.getInstance());
     }
 
-    public static Connection getConnection() {
+    public Connection getConnection() {
         try {
             if (dataSource == null) {
                 dataSource = new HikariDataSource(hikariConfig);
@@ -249,5 +244,35 @@ public class DatabaseManager {
             plugin.getLogger().severe("Failed to get new island index: " + e.getMessage());
             return null;
         }
+    }
+
+    public boolean islandExistsByUUID(String islandUUID) {
+        String sql = "SELECT COUNT(*) FROM islands WHERE uuid = ?";
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, islandUUID);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to check if island exists: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean islandExistsByIndex(int islandIndex) {
+        String sql = "SELECT COUNT(*) FROM islands WHERE island_index = ?";
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, islandIndex);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to check if island exists: " + e.getMessage());
+        }
+        return false;
     }
 }
