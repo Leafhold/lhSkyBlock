@@ -4,7 +4,6 @@ import org.leafhold.lhSkyBlock.lhSkyBlock;
 import org.leafhold.lhSkyBlock.islands.IslandMenuHolder;
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 import org.leafhold.lhSkyBlock.islands.IslandSpawning;
-import org.leafhold.lhSkyBlock.utils.VoidWorldGenerator;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -23,7 +22,6 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.WorldCreator;
 
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -40,8 +38,8 @@ import java.io.File;
 import java.sql.ResultSet;
 
 public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
-    private static lhSkyBlock plugin;
-    private static FileConfiguration config;
+    private lhSkyBlock plugin;
+    private FileConfiguration config;
     private DatabaseManager databaseManager;
     private final Map<UUID, Long> visitorToggleCooldown = new HashMap<>();
     private static final long COOLDOWN_TIME = 5000;
@@ -70,6 +68,10 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
         } catch (SQLException e) {
             player.sendMessage(Component.text("An error occurred while fetching your islands. Please try again later.").color(NamedTextColor.RED));
             e.printStackTrace();
+            return true;
+        }
+        if (userIslands == null) {
+            player.sendMessage(Component.text("Could not fetch your islands. Please try again later.").color(NamedTextColor.RED));
             return true;
         }
         if (args.length == 0) {
@@ -190,25 +192,26 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
             player.sendMessage(Component.text("Island not found.").color(NamedTextColor.RED));
             return;
         }
-        Integer islandIndex = (Integer) ((Object[]) islandData)[4];
+        Object[] islandObj = (Object[]) islandData;
+        Integer islandIndex = (Integer) islandObj[4];
         if (islandData == null) {
             player.sendMessage(Component.text("Island not found.").color(NamedTextColor.RED));
             return;
         }
-
         if (islandIndex < 0) {
             player.sendMessage(Component.text("Invalid island index.").color(NamedTextColor.RED));
             return;
         }
 
-        Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandIndex, Bukkit.getWorld("islands")).clone();
+        World islandWorld = IslandSpawning.loadWorld();
+        Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandIndex, islandWorld);
         if (islandLocation == null) {
             player.sendMessage(Component.text("Island location not found.").color(NamedTextColor.RED));
             return;
         }
         islandLocation.setPitch(0);
         islandLocation.setYaw(180);
-        islandLocation.add(0.5, 1, -0.5);
+        islandLocation.add(0,1,-1);
         player.teleportAsync(islandLocation);
     }
 
@@ -268,19 +271,15 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                 event.setCancelled(true);
                 if (event.getCurrentItem() != null) {
                     ItemStack item = event.getCurrentItem();
-                    String itemRole = item.getItemMeta().getPersistentDataContainer()
-                        .get(new org.bukkit.NamespacedKey(plugin, "item_role"), PersistentDataType.STRING);
-                    String itemKey = item.getItemMeta().getPersistentDataContainer()
-                        .get(new org.bukkit.NamespacedKey(plugin, "item_key"), PersistentDataType.STRING);
+                    ItemMeta meta = item.getItemMeta();
+                    String itemRole = meta.getPersistentDataContainer().get(new org.bukkit.NamespacedKey(plugin, "item_role"), PersistentDataType.STRING);
+                    String itemKey = meta.getPersistentDataContainer().get(new org.bukkit.NamespacedKey(plugin, "item_key"), PersistentDataType.STRING);
+                    String islandUUIDString = meta.getPersistentDataContainer().get(new org.bukkit.NamespacedKey(plugin, "island_uuid"), PersistentDataType.STRING);
+                    UUID islandUUID = null;
+                    if (islandUUIDString != null && !islandUUIDString.isEmpty()) {
+                        islandUUID = UUID.fromString(islandUUIDString);
+                    }
                     if (itemRole != null) {
-                        String islandUUIDString = item.getItemMeta().getPersistentDataContainer()
-                            .get(new org.bukkit.NamespacedKey(plugin, "island_uuid"), PersistentDataType.STRING);
-                        
-                        UUID islandUUID = null;
-                        if (islandUUIDString != null) {
-                            islandUUID = UUID.fromString(islandUUIDString);
-                        }
-
                         switch (itemRole) {
                             case "manage_island":
                                 if (islandUUID == null) {
@@ -377,13 +376,8 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                     .findFirst()
                                     .orElse(null);
                                 if (islandWorld == null) {
-                                    WorldCreator creator = new WorldCreator("islands");
-                                    creator.generator(new VoidWorldGenerator(plugin));
-                                    islandWorld = creator.createWorld();
-                                    islandWorld.setDifficulty(org.bukkit.Difficulty.NORMAL);
-                                    islandWorld.setPVP(false);
+                                    islandWorld = IslandSpawning.loadWorld();
                                 }
-                                UUID newIslandUUID;
                                 Integer islandIndex;
                                 Object[] result = databaseManager.createIsland(
                                     player.getUniqueId(),
@@ -392,9 +386,10 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                 );
                                 
                                 if (result != null) {
-                                    newIslandUUID = (UUID) result[0];
                                     islandIndex = (Integer) result[1];
                                     Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandIndex, islandWorld);
+                                    double x = islandLocation.getX();
+                                    double z = islandLocation.getZ();
 
                                     String schematicName = config.getString("islands.default-island.schematic");
                                     if (schematicName == null || schematicName.isEmpty()) {
@@ -413,7 +408,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                         return;
                                     }
                                     player.sendMessage(Component.text("Island created successfully!").color(NamedTextColor.GREEN));
-                                    player.teleport(islandLocation.add(0.5, 1, -0.5).setRotation(180, 0));
+                                    player.teleport(islandLocation.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5).setRotation(180, 0));
                                 } else {
                                     player.sendMessage(Component.text("Failed to create island. You might already have one.").color(NamedTextColor.RED));
                                 }
@@ -459,7 +454,10 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                         player.sendMessage(Component.text("Deleting island...").color(NamedTextColor.AQUA));
                                         if (player.getLocation().getWorld().getName().equals("islands")) {
                                             if (IslandSpawning.getIslandIndexFromLocation(player.getLocation()) == ((Object[]) islandData)[4]) {
-                                                player.teleportAsync(Bukkit.getWorld("world").getSpawnLocation().add(0.5, 1, -0.5).setRotation(180, 0));
+                                                Location spawnLocation = Bukkit.getWorld("world").getSpawnLocation();
+                                                Double x = spawnLocation.getX();
+                                                Double z = spawnLocation.getZ();
+                                                player.teleportAsync(spawnLocation.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5).setRotation(180, 0))
                                             }
                                         };
                                         Boolean deleted = IslandSpawning.deleteIsland(islandLocation);
@@ -511,7 +509,8 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
             islandMeta.lore(java.util.Arrays.asList(
                 Component.text("Click to teleport to your island.").color(NamedTextColor.GRAY),
                 Component.text("Right-click to manage your island.").color(NamedTextColor.GRAY)
-            ));            islandMeta.getPersistentDataContainer().set(
+            ));
+            islandMeta.getPersistentDataContainer().set(
                 new org.bukkit.NamespacedKey(plugin, "island_uuid"),
                 PersistentDataType.STRING,
                 islandUUID.toString()
@@ -667,7 +666,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
             e.printStackTrace();
             return;
         }
-        
+
         for (int i = 0; i < userIslands.size(); i++) {
             Object island = userIslands.get(i);
             Object[] islandObj = (Object[]) island;

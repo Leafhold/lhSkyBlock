@@ -20,12 +20,9 @@ A Minecraft SkyBlock plugin for Spigot/Paper servers that provides island manage
   - `/island help` - Show help information
 
 ### Shop Commands
-- `/shop` - Main shop command
-  - `/shop create` - Create a new shop
-  - `/shop delete` - Delete a shop
-  - `/shop edit` - Edit shop settings
-  - `/shop list` - List available shops
-  - `/shop info` - Get shop information
+- `/shop create` - Create a new shop
+- `/shop delete` - Delete a shop
+- `/shop reload` - Reload shop configuration
 
 ## Permissions
 

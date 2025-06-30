@@ -1,11 +1,5 @@
 package org.leafhold.lhSkyBlock;
 
-import javax.xml.crypto.Data;
-
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.command.TabCompleter;
-
 import org.leafhold.lhSkyBlock.commands.IslandCommand;
 import org.leafhold.lhSkyBlock.listeners.PlayerJoinListener;
 import org.leafhold.lhSkyBlock.listeners.PlayerLeaveListener;
@@ -14,6 +8,9 @@ import org.leafhold.lhSkyBlock.listeners.VoidTeleportListener;
 import org.leafhold.lhSkyBlock.shops.SignShop;
 import org.leafhold.lhSkyBlock.commands.ShopCommand;
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
+
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public final class lhSkyBlock extends JavaPlugin {
     private static lhSkyBlock instance;

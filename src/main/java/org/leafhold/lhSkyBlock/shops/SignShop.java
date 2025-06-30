@@ -5,9 +5,9 @@ import org.leafhold.lhSkyBlock.lhSkyBlock;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.Directional;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Display.Billboard;
 import org.bukkit.event.EventHandler;
@@ -15,31 +15,46 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.Listener;
 import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 
-import net.citizensnpcs.api.persistence.Persist;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.md_5.bungee.api.chat.hover.content.Item;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+
 import de.oliver.fancyholograms.api.FancyHologramsPlugin;
 import de.oliver.fancyholograms.api.HologramManager;
 import de.oliver.fancyholograms.api.data.ItemHologramData;
-import de.oliver.fancyholograms.api.data.TextHologramData;
 import de.oliver.fancyholograms.api.hologram.Hologram;
+
+import net.milkbowl.vault.economy.Economy;
 
 import java.util.UUID;
 
 public class SignShop implements Listener {
-    private static lhSkyBlock plugin;
-    private static FileConfiguration config;
+    private lhSkyBlock plugin;
+    private Economy economy;
 
     public SignShop(lhSkyBlock plugin) {
         this.plugin = plugin;
-        config = plugin.getConfig();
+        setupEconomy();
+    }
+
+    private void setupEconomy() {
+        if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+            RegisteredServiceProvider<Economy> rsp = Bukkit.getServicesManager().getRegistration(Economy.class);
+            if (rsp != null) {
+                economy = rsp.getProvider();
+                plugin.getLogger().info("Vault economy provider found: " + economy.getName());
+            } else {
+                plugin.getLogger().warning("Vault economy provider not found. Shop transactions will not work.");
+            }
+        }
     }
 
     private boolean isSignShop(Block block) {
@@ -82,7 +97,9 @@ public class SignShop implements Listener {
         if (attachedFace == BlockFace.DOWN || attachedFace == BlockFace.UP) return;
         if (relativeBlock == null || !relativeBlock.getType().toString().toLowerCase().contains("chest")) return;
 
-        String[] lines = event.getLines();
+        String[] lines = event.lines().stream()
+            .map(component -> component == null ? "" : PlainTextComponentSerializer.plainText().serialize(component))
+            .toArray(String[]::new);
 
         if (!lines[0].equalsIgnoreCase("[sell]") && !lines[0].equalsIgnoreCase("[buy]")) return;
         Boolean sell = "[sell]".equalsIgnoreCase(lines[0]);
@@ -119,7 +136,7 @@ public class SignShop implements Listener {
         event.line(3, Component.text(player.getName()).color(NamedTextColor.WHITE));
 
         PersistentDataContainer data = sign.getPersistentDataContainer();
-        data.set(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING, "shop-" + UUID.randomUUID().toString());
+        data.set(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING, UUID.randomUUID().toString());
         data.set(new NamespacedKey(plugin, "shop_type"), PersistentDataType.STRING, sell ? "sell" : "buy");
         data.set(new NamespacedKey(plugin, "item_amount"), PersistentDataType.INTEGER, amount);
         data.set(new NamespacedKey(plugin, "item_price"), PersistentDataType.DOUBLE, price);
@@ -136,16 +153,79 @@ public class SignShop implements Listener {
         PersistentDataContainer data = sign.getPersistentDataContainer();
 
         if (isShopItemSetup(sign)) {
-            String shopUUID = data.get(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING);
             String shopType = data.get(new NamespacedKey(plugin, "shop_type"), PersistentDataType.STRING);
+            ItemStack item = ItemStack.deserializeBytes(data.get(new NamespacedKey(plugin, "item"), PersistentDataType.BYTE_ARRAY));
             int amount = data.get(new NamespacedKey(plugin, "item_amount"), PersistentDataType.INTEGER);
             double price = data.get(new NamespacedKey(plugin, "item_price"), PersistentDataType.DOUBLE);
             String ownerUUID = data.get(new NamespacedKey(plugin, "owner"), PersistentDataType.STRING);
+            OfflinePlayer owner = Bukkit.getOfflinePlayer(UUID.fromString(ownerUUID));
 
             if (ownerUUID.equals(player.getUniqueId().toString())) {
                 if (shopType.equals("sell")) player.sendMessage(Component.text("You cannot buy from your own shop").color(NamedTextColor.RED));
                 else player.sendMessage(Component.text("You cannot sell to your own shop").color(NamedTextColor.RED));
+                return;
             }
+
+            BlockFace attachedFace = ((Directional) sign.getBlock().getBlockData()).getFacing().getOppositeFace();
+            Block chestBlock = sign.getBlock().getRelative(attachedFace);
+
+            Inventory chestInventory = ((InventoryHolder) chestBlock.getState()).getInventory();
+            boolean itemFound = false;
+            if (chestInventory.containsAtLeast(item, amount)) {
+                itemFound = true;
+            }
+
+            if (!itemFound) {
+                player.sendMessage(Component.text("The shop does not have enough items to complete the transaction").color(NamedTextColor.RED));
+                return;
+            }
+
+            if (shopType.equals("sell")) {
+                if (economy.getBalance(player) < price) {
+                    player.sendMessage(Component.text("You do not have enough money to buy this item").color(NamedTextColor.RED));
+                    return;
+                }
+                if (player.getInventory().containsAtLeast(item, amount)) {
+                    if (chestInventory.firstEmpty() == -1) { //todo Fix this check to allow for stacking in the last slot
+                        player.sendMessage(Component.text("The shop's chest is full").color(NamedTextColor.RED));
+                        return;
+                    }
+                    ItemStack toRemove = item.clone();
+                    toRemove.setAmount(amount);
+                    player.getInventory().removeItem(toRemove);
+                    chestInventory.addItem(toRemove);
+                    economy.withdrawPlayer(player, amount);
+                    economy.depositPlayer(owner, price);
+                    player.sendMessage(Component.text("Sign shop >").color(NamedTextColor.GREEN)
+                        .append(Component.text(" Bought " + amount + " " + item.getType().name() + " for $" + price)));
+                }
+                else {
+                    player.sendMessage(Component.text("You do not have enough items to sell").color(NamedTextColor.RED));
+                    return;
+                }
+            } else {
+                if (economy.getBalance(owner) < price) {
+                    player.sendMessage(Component.text("The shop owner does not have enough money to sell this item").color(NamedTextColor.RED));
+                    return;
+                }
+                if (chestInventory.containsAtLeast(item, amount)) {
+                    if (player.getInventory().firstEmpty() == -1) {
+                        player.sendMessage(Component.text("Your inventory is full").color(NamedTextColor.RED));
+                        return;
+                    }
+                    economy.withdrawPlayer(player, amount);
+                    economy.depositPlayer(owner, price);
+                    ItemStack toAdd = item.clone();
+                    toAdd.setAmount(amount);
+                    chestInventory.removeItem(toAdd);
+                    player.getInventory().addItem(toAdd);
+                } else {
+                    player.sendMessage(Component.text("The shop does not have enough items to complete the transaction").color(NamedTextColor.RED));
+                    return;
+                }
+            }
+
+            
         } else {
             UUID ownerUUID = UUID.fromString(data.get(new NamespacedKey(plugin, "owner"), PersistentDataType.STRING));
             if (ownerUUID.equals(player.getUniqueId())) {
@@ -154,21 +234,15 @@ public class SignShop implements Listener {
                     player.sendMessage(Component.text("You must hold a valid item to set up the shop").color(NamedTextColor.RED));
                     return;
                 }
-                BlockFace attachedFace = BlockFace.DOWN;
-                if (sign.getBlock().getBlockData() instanceof Directional) {
-                    attachedFace = ((Directional) sign.getBlock().getBlockData()).getFacing().getOppositeFace();
-                }
+                BlockFace attachedFace = ((Directional) sign.getBlock().getBlockData()).getFacing().getOppositeFace();
                 Block chestBlock = sign.getBlock().getRelative(attachedFace);
                 Location chestLocation = chestBlock.getLocation();
-                Location location = chestBlock.getLocation().add(0, 1.25, 0);
-                if (chestLocation.getX() > 0) location.add(-0.5, 0, 0);
-                else location.add(0.5, 0, 0);
-                if (chestLocation.getZ() > 0) location.add(0, 0, -0.5);
-                else location.add(0, 0, 0.5);
-
+                chestLocation.add(0.5, 1.25, 0.5);
+                Float yaw = getYawFromFacing(attachedFace);
+                chestLocation.setYaw(yaw);
                 
                 String shopUUID = data.get(new NamespacedKey(plugin, "shop_uuid"), PersistentDataType.STRING);
-                ItemHologramData hologramData = new ItemHologramData(shopUUID, location);
+                ItemHologramData hologramData = new ItemHologramData(shopUUID, chestLocation);
                 hologramData.setItemStack(item);
                 hologramData.setScale(new org.joml.Vector3f(0.5f, 0.5f, 0.5f));
                 hologramData.setBillboard(Billboard.FIXED);
@@ -224,6 +298,16 @@ public class SignShop implements Listener {
                     manager.removeHologram(hologram);
                 }
             }
+        }
+    }
+
+    private float getYawFromFacing(BlockFace face) {
+        switch (face) {
+            case NORTH: return 180f;
+            case SOUTH: return 0f;
+            case WEST: return 90f;
+            case EAST: return -90f;
+            default: return 0f;
         }
     }
 }
