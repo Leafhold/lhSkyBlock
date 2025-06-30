@@ -206,9 +206,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
         }
         islandLocation.setPitch(0);
         islandLocation.setYaw(180);
-        double x = islandLocation.getX();
-        double z = islandLocation.getZ();
-        islandLocation.add(x > 0 ? 0.5 : -0.5, 1, z > 0 ? 0.5 : -0.5);
+        islandLocation.add(0,1,0);
         player.teleportAsync(islandLocation);
     }
 
@@ -271,10 +269,12 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                     ItemMeta meta = item.getItemMeta();
                     String itemRole = meta.getPersistentDataContainer().get(new org.bukkit.NamespacedKey(plugin, "item_role"), PersistentDataType.STRING);
                     String itemKey = meta.getPersistentDataContainer().get(new org.bukkit.NamespacedKey(plugin, "item_key"), PersistentDataType.STRING);
+                    String islandUUIDString = meta.getPersistentDataContainer().get(new org.bukkit.NamespacedKey(plugin, "island_uuid"), PersistentDataType.STRING);
+                    UUID islandUUID = null;
+                    if (islandUUIDString != null && !islandUUIDString.isEmpty()) {
+                        islandUUID = UUID.fromString(islandUUIDString);
+                    }
                     if (itemRole != null) {
-                        String islandUUIDString = meta.getPersistentDataContainer().get(new org.bukkit.NamespacedKey(plugin, "island_uuid"), PersistentDataType.STRING);
-                        UUID islandUUID = UUID.fromString(islandUUIDString);
-
                         switch (itemRole) {
                             case "manage_island":
                                 if (islandUUID == null) {
