@@ -206,7 +206,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
         }
         islandLocation.setPitch(0);
         islandLocation.setYaw(180);
-        islandLocation.add(0,1,0);
+        islandLocation.add(0,1,-1);
         player.teleportAsync(islandLocation);
     }
 

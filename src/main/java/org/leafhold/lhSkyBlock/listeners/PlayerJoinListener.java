@@ -41,7 +41,7 @@ public class PlayerJoinListener implements Listener {
             Location loc = mainWorld.getSpawnLocation();
             Double x = loc.getX();
             Double z = loc.getZ();
-            loc.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5);
+            loc.add(x >= 0 ? 0.5 : -0.5, 0.0, z >= 0 ? 0.5 : -0.5);
             loc.setPitch(0);
             loc.setYaw(180);
             player.teleportAsync(loc, TeleportCause.PLUGIN);
