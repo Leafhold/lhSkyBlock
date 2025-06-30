@@ -153,7 +153,7 @@ public class DatabaseManager {
     }
 
     public List<Object> getIslandsByOwner(String ownerUUID) throws SQLException {
-        String sql = "SELECT uuid, owner, name, is_public FROM islands WHERE owner = ?";
+        String sql = "SELECT uuid, owner, name, is_public, island_index FROM islands WHERE owner = ?";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, ownerUUID);
@@ -164,7 +164,8 @@ public class DatabaseManager {
                 String owner = resultSet.getString("owner");
                 String name = resultSet.getString("name");
                 boolean isPublic = resultSet.getBoolean("is_public");
-                islands.add(new Object[] { islandUUID, owner, name, isPublic });
+                int islandIndex = resultSet.getInt("island_index");
+                islands.add(new Object[] { islandUUID, owner, name, isPublic, islandIndex });
             }
             return islands;
         }

@@ -72,19 +72,23 @@ public class VisitCommand implements CommandExecutor {
             player.sendMessage(Component.text("Island data is not available.").color(NamedTextColor.RED));
             return;
         }
-        List<Object> islandObject = (List<Object>) islandData;
-        Boolean isPublic = (Boolean) islandObject.get(3);
+        Object[] islandObject = (Object[]) islandData;
+        Boolean isPublic = (Boolean) islandObject[3];
+        Integer islandId = (Integer) islandObject[4];
         if (!isPublic) {
             player.sendMessage(Component.text("This island is private. You cannot visit it.").color(NamedTextColor.RED));
             return;
         }
-        Integer islandId = (Integer) islandObject.get(0);
         World islandWorld = Bukkit.getWorld("islands");
         Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandId, islandWorld);
         if (islandLocation == null) {
             player.sendMessage(Component.text("Island location not found.").color(NamedTextColor.RED));
             return;
         }
+        islandLocation.setPitch(0);
+        islandLocation.setYaw(180);
+        islandLocation.add(0, 1,-1);
+        
         player.teleportAsync(islandLocation, TeleportCause.COMMAND);
 
     }
