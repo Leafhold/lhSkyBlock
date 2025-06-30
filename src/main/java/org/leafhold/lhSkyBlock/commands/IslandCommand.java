@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.io.File;
-import java.sql.ResultSet;
 
 public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
     private lhSkyBlock plugin;
@@ -194,16 +193,12 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
         }
         Object[] islandObj = (Object[]) islandData;
         Integer islandIndex = (Integer) islandObj[4];
-        if (islandData == null) {
-            player.sendMessage(Component.text("Island not found.").color(NamedTextColor.RED));
-            return;
-        }
         if (islandIndex < 0) {
             player.sendMessage(Component.text("Invalid island index.").color(NamedTextColor.RED));
             return;
         }
 
-        World islandWorld = IslandSpawning.loadWorld();
+        World islandWorld = Bukkit.getWorld("islands");
         Location islandLocation = IslandSpawning.getIslandSpawnLocation(islandIndex, islandWorld);
         if (islandLocation == null) {
             player.sendMessage(Component.text("Island location not found.").color(NamedTextColor.RED));
@@ -371,13 +366,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                             case "create_island":
                                 player.closeInventory();
                                 player.sendMessage(Component.text("Creating a new island...").color(NamedTextColor.AQUA));
-                                World islandWorld = Bukkit.getWorlds().stream()
-                                    .filter(world -> world.getName().equalsIgnoreCase("islands"))
-                                    .findFirst()
-                                    .orElse(null);
-                                if (islandWorld == null) {
-                                    islandWorld = IslandSpawning.loadWorld();
-                                }
+                                World islandWorld = Bukkit.getWorld("islands");
                                 Integer islandIndex;
                                 Object[] result = databaseManager.createIsland(
                                     player.getUniqueId(),
@@ -457,7 +446,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                                 Location spawnLocation = Bukkit.getWorld("world").getSpawnLocation();
                                                 Double x = spawnLocation.getX();
                                                 Double z = spawnLocation.getZ();
-                                                player.teleportAsync(spawnLocation.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5).setRotation(180, 0))
+                                                player.teleportAsync(spawnLocation.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5).setRotation(180, 0));
                                             }
                                         };
                                         Boolean deleted = IslandSpawning.deleteIsland(islandLocation);

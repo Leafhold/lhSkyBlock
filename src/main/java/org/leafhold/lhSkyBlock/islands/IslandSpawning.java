@@ -2,7 +2,6 @@ package org.leafhold.lhSkyBlock.islands;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
-import org.leafhold.lhSkyBlock.utils.VoidWorldGenerator;
 
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -13,41 +12,24 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
-import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.world.block.BlockTypes;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.CuboidRegion;
-import com.sk89q.worldguard.protection.flags.Flags;
-import com.sk89q.worldguard.protection.managers.RegionManager;
-import com.sk89q.worldguard.protection.managers.storage.StorageException;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-import com.sk89q.worldguard.protection.regions.RegionContainer;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.protection.flags.StateFlag.State;
-
-import com.fastasyncworldedit.core.Fawe;
-import com.fastasyncworldedit.core.FaweAPI;
-import com.fastasyncworldedit.core.util.TaskManager;
 
 import com.fastasyncworldedit.core.util.TaskManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.World;
-import org.bukkit.block.BlockType;
-import org.bukkit.Material;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class IslandSpawning {
     private static lhSkyBlock plugin;
@@ -190,49 +172,5 @@ public class IslandSpawning {
             }
         });
         return true;
-    }
-
-    public static World loadWorld() {
-        World islandWorld = Bukkit.getWorld("islands");
-        if (islandWorld != null) {
-            return islandWorld;
-        }
-        boolean doesWorldExist = Files.exists(Bukkit.getWorldContainer().toPath().resolve("islands"));
-        if (doesWorldExist) {
-            islandWorld = Bukkit.createWorld(new WorldCreator("islands"));
-            return islandWorld;
-        }
-        WorldCreator creator = new WorldCreator("islands");
-        creator.generator(new VoidWorldGenerator());
-        islandWorld = creator.createWorld();
-        islandWorld.setDifficulty(org.bukkit.Difficulty.NORMAL);
-        islandWorld.setPVP(false);
-        RegionContainer regionContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
-        RegionManager regions = regionContainer.get(BukkitAdapter.adapt(islandWorld));
-        if (regions != null && regions.hasRegion("__global__")) {
-            ProtectedRegion globalRegion = regions.getRegion("__global__");
-            if (globalRegion != null) {
-                globalRegion.setFlag(Flags.BUILD, State.DENY);
-                globalRegion.setFlag(Flags.CHEST_ACCESS, State.DENY);
-                globalRegion.setFlag(Flags.CROP_GROWTH, State.DENY);
-                globalRegion.setFlag(Flags.OTHER_EXPLOSION, State.DENY);
-                globalRegion.setFlag(Flags.BLOCK_PLACE, State.DENY);
-                globalRegion.setFlag(Flags.BLOCK_BREAK, State.DENY);
-                globalRegion.setFlag(Flags.PVP, State.DENY);
-                globalRegion.setFlag(Flags.MOB_SPAWNING, State.DENY);
-                globalRegion.setFlag(Flags.CREEPER_EXPLOSION, State.DENY);
-                globalRegion.setFlag(Flags.ENDER_BUILD, State.DENY);
-                globalRegion.setFlag(Flags.TNT, State.DENY);
-                globalRegion.setFlag(Flags.FIRE_SPREAD, State.DENY);
-                globalRegion.setFlag(Flags.LIGHTER, State.DENY);
-                globalRegion.setFlag(Flags.GHAST_FIREBALL, State.DENY);
-                try {
-                    regions.save();
-                } catch (StorageException e) {
-                    plugin.getLogger().severe("Failed to save WorldGuard regions: " + e.getMessage());
-                }
-            }
-        }
-        return islandWorld;
     }
 }

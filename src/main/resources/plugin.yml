@@ -16,6 +16,11 @@ commands:
     usage: "/shop [create|delete|edit|list|info]"
     permission: lhskyblock.shop
     permission-message: "You do not have permission to use this command."
+  visit:
+    description: Visit other players' islands
+    usage: "/visit <player>"
+    permission: lhskyblock.visit
+    permission-message: "You do not have permission to visit islands."
 permissions:
   lhskyblock.island:
     description: Allows players to manage their islands
@@ -23,3 +28,6 @@ permissions:
   lhskyblock.shop:
     description: Allows players to manage shops
     default: false
+  lhskyblock.visit:
+    description: Allows players to visit other (public) islands
+    default: true
