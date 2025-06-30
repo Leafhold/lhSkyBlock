@@ -2,6 +2,7 @@ package org.leafhold.lhSkyBlock.islands;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
+import org.leafhold.lhSkyBlock.utils.VoidWorldGenerator;
 
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -24,6 +25,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -157,7 +159,6 @@ public class IslandSpawning {
         Location maxLocation = islandLocation.clone();
         maxLocation.setY(maxY);
         maxLocation.add(islandSpacing / 2, 0, islandSpacing / 2);
-        plugin.getLogger().info("Deleting island at " + minLocation + " to " + maxLocation);
         BlockVector3 min = BukkitAdapter.asBlockVector(minLocation);
         BlockVector3 max = BukkitAdapter.asBlockVector(maxLocation);
         Region region = new CuboidRegion(min, max);
@@ -173,5 +174,19 @@ public class IslandSpawning {
             }
         });
         return true;
+    }
+
+    public static World loadWorld() {
+        World islandWorld = Bukkit.getWorld("islands");
+        if (islandWorld != null) {
+            plugin.getLogger().info("The 'islands' world is already loaded.");
+            return islandWorld;
+        }
+        WorldCreator creator = new WorldCreator("islands");
+        creator.generator(new VoidWorldGenerator());
+        islandWorld = creator.createWorld();
+        islandWorld.setDifficulty(org.bukkit.Difficulty.NORMAL);
+        islandWorld.setPVP(false);
+        return islandWorld;
     }
 }
