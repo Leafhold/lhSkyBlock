@@ -28,6 +28,8 @@ import com.sk89q.worldguard.protection.flags.StateFlag.State;
 
 import com.fastasyncworldedit.core.util.TaskManager;
 
+import com.fastasyncworldedit.core.util.TaskManager;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
