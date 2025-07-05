@@ -13,7 +13,6 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
-import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.world.block.BlockTypes;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
@@ -27,8 +26,6 @@ import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.flags.StateFlag.State;
 
-import com.fastasyncworldedit.core.Fawe;
-import com.fastasyncworldedit.core.FaweAPI;
 import com.fastasyncworldedit.core.util.TaskManager;
 
 import com.fastasyncworldedit.core.util.TaskManager;
@@ -36,10 +33,8 @@ import com.fastasyncworldedit.core.util.TaskManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.World;
-import org.bukkit.block.BlockType;
-import org.bukkit.Material;
+import org.bukkit.WorldCreator;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,7 +42,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class IslandSpawning {
     private static lhSkyBlock plugin;

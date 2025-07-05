@@ -457,7 +457,7 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                                 Location spawnLocation = Bukkit.getWorld("world").getSpawnLocation();
                                                 Double x = spawnLocation.getX();
                                                 Double z = spawnLocation.getZ();
-                                                player.teleportAsync(spawnLocation.add(x > 0 ? 0.5 : -0.5, 0.0, z > 0 ? 0.5 : -0.5).setRotation(180, 0))
+                                                player.teleportAsync(spawnLocation.add(x >= 0 ? 0.5 : -0.5, 0.0, z >= 0 ? 0.5 : -0.5).setRotation(180, 0));
                                             }
                                         };
                                         Boolean deleted = IslandSpawning.deleteIsland(islandLocation);

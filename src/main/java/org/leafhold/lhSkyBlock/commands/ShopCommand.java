@@ -191,8 +191,8 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
                     item.setAmount(defaultAmount);
                     ItemMeta meta = item.getItemMeta();
                     meta.lore(java.util.Arrays.asList(
-                        Component.text("Buy: $").append(Component.text(buyPrice)).color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false),
-                        Component.text("Sell: $").append(Component.text(sellPrice)).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false),
+                        Component.text("Buy: $").append(Component.text(buyPrice * defaultAmount)).color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false),
+                        Component.text("Sell: $").append(Component.text(sellPrice * defaultAmount)).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false),
                         Component.text("Left click to buy").color(NamedTextColor.BLUE).decoration(TextDecoration.ITALIC, false),
                         Component.text("Right click to sell").color(NamedTextColor.BLUE).decoration(TextDecoration.ITALIC, false)
                         ));
