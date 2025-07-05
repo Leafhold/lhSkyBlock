@@ -28,8 +28,6 @@ import com.sk89q.worldguard.protection.flags.StateFlag.State;
 
 import com.fastasyncworldedit.core.util.TaskManager;
 
-import com.fastasyncworldedit.core.util.TaskManager;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -42,6 +40,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class IslandSpawning {
     private static lhSkyBlock plugin;
@@ -173,17 +172,25 @@ public class IslandSpawning {
         BlockVector3 max = BukkitAdapter.asBlockVector(maxLocation);
         Region region = new CuboidRegion(min, max);
 
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
         TaskManager.taskManager().async(() -> {
             try (EditSession editSession = WorldEdit.getInstance().newEditSessionBuilder()
                     .world(BukkitAdapter.adapt(islandLocation.getWorld()))
                     .build()) {
                 editSession.setBlocks(region, BlockTypes.AIR.getDefaultState());
                 editSession.flushQueue();
+                future.complete(true);
             } catch (Exception e) {
                 plugin.getLogger().severe("Failed to delete island at location " + islandLocation + ": " + e.getMessage());
+                future.complete(false);
             }
         });
-        return true;
+        try {
+            return future.get();
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to delete island at location " + islandLocation + ": " + e.getMessage());
+            return false;
+        }
     }
 
     public static World loadWorld() {

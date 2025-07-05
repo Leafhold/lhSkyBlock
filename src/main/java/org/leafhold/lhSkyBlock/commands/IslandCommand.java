@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.io.File;
-import java.sql.ResultSet;
 
 public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
     private lhSkyBlock plugin;
