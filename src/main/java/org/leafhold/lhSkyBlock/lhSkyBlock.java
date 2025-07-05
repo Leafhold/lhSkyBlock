@@ -68,9 +68,12 @@ public final class lhSkyBlock extends JavaPlugin {
         if (Bukkit.getPluginManager().isPluginEnabled("FancyHolograms")) {
             getLogger().info("FancyHolograms found - enabling sign shops");
             getServer().getPluginManager().registerEvents(new SignShop(instance), instance);
+        } else {
+            getLogger().warning("FancyHolograms not found - sign shops disabled");
         }
 
         if (Bukkit.getPluginManager().isPluginEnabled("Citizens")) {
+            getLogger().info("Citizens found - enabling shop command");
             ShopCommand shopCommand = new ShopCommand(instance);
             getCommand("shop").setExecutor(shopCommand);
             getCommand("shop").setTabCompleter(shopCommand);
