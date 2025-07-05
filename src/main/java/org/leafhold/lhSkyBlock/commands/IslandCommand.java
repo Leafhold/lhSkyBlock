@@ -459,18 +459,25 @@ public class IslandCommand implements CommandExecutor, Listener, TabCompleter {
                                                 player.teleportAsync(spawnLocation.add(x >= 0 ? 0.5 : -0.5, 0.0, z >= 0 ? 0.5 : -0.5).setRotation(180, 0));
                                             }
                                         };
-                                        Boolean deleted = IslandSpawning.deleteIsland(islandLocation);
-                                        if (deleted == null || !deleted) {
-                                            player.sendMessage(Component.text("Failed to delete island. Please try again later.").color(NamedTextColor.RED));
-                                            return;
-                                        }
-
-                                        deleted = databaseManager.deleteIsland(player, islandUUID.toString());
-                                        if (deleted) {
-                                            player.sendMessage(Component.text("Island deleted successfully.").color(NamedTextColor.GREEN));
-                                        } else {
-                                            player.sendMessage(Component.text("Failed to delete island. You might not own this island.").color(NamedTextColor.RED));
-                                        }
+                                        final UUID finalIslandUUID = islandUUID;
+                                        IslandSpawning.deleteIsland(islandLocation, success -> {
+                                            if (success) {
+                                                player.sendMessage(Component.text("Island deleted successfully.").color(NamedTextColor.GREEN));
+                                                try {
+                                                    Boolean deleted = databaseManager.deleteIsland(player, finalIslandUUID.toString());
+                                                    if (deleted) {
+                                                        player.sendMessage(Component.text("Island deleted successfully.").color(NamedTextColor.GREEN));
+                                                    } else {
+                                                        player.sendMessage(Component.text("Failed to delete island. You might not own this island.").color(NamedTextColor.RED));
+                                                    }
+                                                } catch (SQLException e) {
+                                                    player.sendMessage(Component.text("An error occurred while deleting the island. Please try again later.").color(NamedTextColor.RED));
+                                                    e.printStackTrace();
+                                                }
+                                            } else {
+                                                player.sendMessage(Component.text("Failed to delete island. Please try again later.").color(NamedTextColor.RED));
+                                            }
+                                        });
                                         break;
                                     case "cancel":
                                         player.sendMessage(Component.text("Island deletion cancelled.").color(NamedTextColor.YELLOW));

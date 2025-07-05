@@ -41,6 +41,7 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class IslandSpawning {
     private static lhSkyBlock plugin;
@@ -155,8 +156,8 @@ public class IslandSpawning {
         return null;
     }
 
-    public static boolean deleteIsland(Location location) {
-        if (location == null || location.getWorld() == null) return false;
+    public static void deleteIsland(Location location, Consumer<Boolean> callback) {
+        if (location == null || location.getWorld() == null) callback.accept(false);
         Integer islandIndex = getIslandIndexFromLocation(location);
         Location islandLocation = getIslandSpawnLocation(islandIndex, Bukkit.getWorld("islands"));
 
@@ -172,25 +173,18 @@ public class IslandSpawning {
         BlockVector3 max = BukkitAdapter.asBlockVector(maxLocation);
         Region region = new CuboidRegion(min, max);
 
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
         TaskManager.taskManager().async(() -> {
             try (EditSession editSession = WorldEdit.getInstance().newEditSessionBuilder()
                     .world(BukkitAdapter.adapt(islandLocation.getWorld()))
                     .build()) {
                 editSession.setBlocks(region, BlockTypes.AIR.getDefaultState());
                 editSession.flushQueue();
-                future.complete(true);
+                Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("lhSkyBlock"), () -> callback.accept(true));
             } catch (Exception e) {
                 plugin.getLogger().severe("Failed to delete island at location " + islandLocation + ": " + e.getMessage());
-                future.complete(false);
+                Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("lhSkyBlock"), () -> callback.accept(false));
             }
         });
-        try {
-            return future.get();
-        } catch (Exception e) {
-            plugin.getLogger().severe("Failed to delete island at location " + islandLocation + ": " + e.getMessage());
-            return false;
-        }
     }
 
     public static World loadWorld() {
