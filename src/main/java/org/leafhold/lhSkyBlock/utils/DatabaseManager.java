@@ -1,12 +1,19 @@
 package org.leafhold.lhSkyBlock.utils;
 
+import org.leafhold.lhSkyBlock.lhSkyBlock;
+
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-
-import org.leafhold.lhSkyBlock.lhSkyBlock;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -287,6 +294,72 @@ public class DatabaseManager {
                 String keyType = resultSet.getString("key_type");
                 int amount = resultSet.getInt("amount");
                 keys.add(new Object[] { keyType, amount });
+            }
+            return keys;
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to get keys for player " + playerUUID + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    public List<ItemStack> getKeysForPlayer(UUID playerUUID) {
+        String sql = "SELECT key_type, amount FROM player_keys WHERE player_uuid = ?";
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, playerUUID.toString());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<ItemStack> keys = new ArrayList<>();
+            while (resultSet.next()) {
+                String keyType = resultSet.getString("key_type");
+                Integer amount = resultSet.getInt("amount");
+                if (amount <= 0) continue;
+                switch (keyType.toLowerCase()) {
+                    case "vote":
+                        ItemStack voteKey = new ItemStack(Material.TRIAL_KEY);
+                        voteKey.setAmount(amount);
+                        ItemMeta meta = voteKey.getItemMeta();
+                        meta.itemName(Component.text("Vote key").color(NamedTextColor.GREEN));
+                        meta.lore(List.of(Component.text("Use this key to open vote crates").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+                        voteKey.setItemMeta(meta);
+                        keys.add(voteKey);
+                        break;
+                    case "bronze":
+                        ItemStack bronzeKey = new ItemStack(Material.TRIAL_KEY);
+                        bronzeKey.setAmount(amount);
+                        ItemMeta bronzeMeta = bronzeKey.getItemMeta();
+                        bronzeMeta.itemName(Component.text("Bronze key").color(NamedTextColor.GOLD));
+                        bronzeMeta.lore(List.of(Component.text("Use this key to open bronze crates").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+                        bronzeKey.setItemMeta(bronzeMeta);
+                        keys.add(bronzeKey);
+                        break;
+                    case "silver":
+                        ItemStack silverKey = new ItemStack(Material.TRIAL_KEY);
+                        silverKey.setAmount(amount);
+                        ItemMeta silverMeta = silverKey.getItemMeta();
+                        silverMeta.itemName(Component.text("Silver key").color(NamedTextColor.GRAY));
+                        silverMeta.lore(List.of(Component.text("Use this key to open silver crates").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+                        silverKey.setItemMeta(silverMeta);
+                        keys.add(silverKey);
+                        break;
+                    case "gold":
+                        ItemStack goldKey = new ItemStack(Material.TRIAL_KEY);
+                        goldKey.setAmount(amount);
+                        ItemMeta goldMeta = goldKey.getItemMeta();
+                        goldMeta.itemName(Component.text("Gold key").color(NamedTextColor.YELLOW));
+                        goldMeta.lore(List.of(Component.text("Use this key to open gold crates").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+                        goldKey.setItemMeta(goldMeta);
+                        keys.add(goldKey);
+                        break;
+                    case "diamond":
+                        ItemStack diamondKey = new ItemStack(Material.TRIAL_KEY);
+                        diamondKey.setAmount(amount);
+                        ItemMeta diamondMeta = diamondKey.getItemMeta();
+                        diamondMeta.itemName(Component.text("Diamond key").color(NamedTextColor.AQUA));
+                        diamondMeta.lore(List.of(Component.text("Use this key to open diamond crates").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+                        diamondKey.setItemMeta(diamondMeta);
+                        keys.add(diamondKey);
+                        break;
+                }
             }
             return keys;
         } catch (SQLException e) {
