@@ -275,4 +275,23 @@ public class DatabaseManager {
         }
         return false;
     }
+
+    public List<Object> getKeys(UUID playerUUID) {
+        String sql = "SELECT key_type, amount FROM player_keys WHERE player_uuid = ?";
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, playerUUID.toString());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<Object> keys = new ArrayList<>();
+            while (resultSet.next()) {
+                String keyType = resultSet.getString("key_type");
+                int amount = resultSet.getInt("amount");
+                keys.add(new Object[] { keyType, amount });
+            }
+            return keys;
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to get keys for player " + playerUUID + ": " + e.getMessage());
+            return null;
+        }
+    }
 }

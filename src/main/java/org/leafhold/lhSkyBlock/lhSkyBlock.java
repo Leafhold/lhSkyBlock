@@ -1,6 +1,7 @@
 package org.leafhold.lhSkyBlock;
 
 import org.leafhold.lhSkyBlock.commands.IslandCommand;
+import org.leafhold.lhSkyBlock.commands.KeysCommand;
 import org.leafhold.lhSkyBlock.listeners.PlayerJoinListener;
 import org.leafhold.lhSkyBlock.listeners.PlayerLeaveListener;
 import org.leafhold.lhSkyBlock.listeners.PlayerDeathListener;
@@ -78,8 +79,14 @@ public final class lhSkyBlock extends JavaPlugin {
             getCommand("shop").setExecutor(shopCommand);
             getCommand("shop").setTabCompleter(shopCommand);
             getServer().getPluginManager().registerEvents(shopCommand, instance);
+
+            getLogger().info("Citizens found - enabling keys command");
+            KeysCommand keysCommand = new KeysCommand(instance);
+            getCommand("keys").setExecutor(keysCommand);
+            getCommand("keys").setTabCompleter(keysCommand);
         } else {
             getLogger().warning("Citizens not found - shop command disabled");
+            getLogger().warning("Citizens not found - keys command disabled");
         }
     }
 
