@@ -2,12 +2,13 @@ package org.leafhold.lhSkyBlock;
 
 import org.leafhold.lhSkyBlock.commands.IslandCommand;
 import org.leafhold.lhSkyBlock.commands.KeysCommand;
+import org.leafhold.lhSkyBlock.commands.ShopCommand;
+import org.leafhold.lhSkyBlock.listeners.PlayerDeathListener;
 import org.leafhold.lhSkyBlock.listeners.PlayerJoinListener;
 import org.leafhold.lhSkyBlock.listeners.PlayerLeaveListener;
-import org.leafhold.lhSkyBlock.listeners.PlayerDeathListener;
 import org.leafhold.lhSkyBlock.listeners.VoidTeleportListener;
+import org.leafhold.lhSkyBlock.listeners.VoteListener;
 import org.leafhold.lhSkyBlock.shops.SignShop;
-import org.leafhold.lhSkyBlock.commands.ShopCommand;
 import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 
 import org.bukkit.Bukkit;
@@ -88,6 +89,13 @@ public final class lhSkyBlock extends JavaPlugin {
         } else {
             getLogger().warning("Citizens not found - shop command disabled");
             getLogger().warning("Citizens not found - keys command disabled");
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("VotifierPlus")) {
+            getLogger().info("VotifierPlus found - enabling vote listener");
+            getServer().getPluginManager().registerEvents(new VoteListener(instance), instance);
+        } else {
+            getLogger().warning("VotifierPlus not found - vote listener disabled");
         }
     }
 
