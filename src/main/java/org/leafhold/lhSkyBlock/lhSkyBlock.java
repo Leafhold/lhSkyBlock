@@ -84,6 +84,7 @@ public final class lhSkyBlock extends JavaPlugin {
             KeysCommand keysCommand = new KeysCommand(instance);
             getCommand("keys").setExecutor(keysCommand);
             getCommand("keys").setTabCompleter(keysCommand);
+            getServer().getPluginManager().registerEvents(keysCommand, instance);
         } else {
             getLogger().warning("Citizens not found - shop command disabled");
             getLogger().warning("Citizens not found - keys command disabled");

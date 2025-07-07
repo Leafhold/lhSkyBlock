@@ -3,10 +3,12 @@ package org.leafhold.lhSkyBlock.utils;
 import org.leafhold.lhSkyBlock.lhSkyBlock;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -102,7 +104,12 @@ public class DatabaseManager {
             "PRIMARY KEY (island_uuid, member_uuid)," +
             "FOREIGN KEY (island_uuid) REFERENCES islands(uuid)" +
             ");";
-
+        String playerKeysTable = "CREATE TABLE IF NOT EXISTS player_keys (" +
+            "player_uuid CHAR(36) NOT NULL," +
+            "key_type VARCHAR(32) NOT NULL," +
+            "amount INT NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (player_uuid, key_type)" +
+            ");";
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(islandTable);
             preparedStatement.executeUpdate();
@@ -110,6 +117,11 @@ public class DatabaseManager {
         }
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(memberTable);
+            preparedStatement.executeUpdate();
+            preparedStatement.close();
+        }
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(playerKeysTable);
             preparedStatement.executeUpdate();
             preparedStatement.close();
         }
@@ -317,10 +329,11 @@ public class DatabaseManager {
                     case "vote":
                         ItemStack voteKey = new ItemStack(Material.TRIAL_KEY);
                         voteKey.setAmount(amount);
-                        ItemMeta meta = voteKey.getItemMeta();
-                        meta.itemName(Component.text("Vote key").color(NamedTextColor.GREEN));
-                        meta.lore(List.of(Component.text("Use this key to open vote crates").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
-                        voteKey.setItemMeta(meta);
+                        ItemMeta voteMeta = voteKey.getItemMeta();
+                        voteMeta.itemName(Component.text("Vote key").color(NamedTextColor.GREEN));
+                        voteMeta.lore(List.of(Component.text("Use this key to open vote crates").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+                        voteMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "key_type"), PersistentDataType.STRING, "vote");
+                        voteKey.setItemMeta(voteMeta);
                         keys.add(voteKey);
                         break;
                     case "bronze":
@@ -329,6 +342,7 @@ public class DatabaseManager {
                         ItemMeta bronzeMeta = bronzeKey.getItemMeta();
                         bronzeMeta.itemName(Component.text("Bronze key").color(NamedTextColor.GOLD));
                         bronzeMeta.lore(List.of(Component.text("Use this key to open bronze crates").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+                        bronzeMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "key_type"), PersistentDataType.STRING, "bronze");
                         bronzeKey.setItemMeta(bronzeMeta);
                         keys.add(bronzeKey);
                         break;
@@ -338,6 +352,7 @@ public class DatabaseManager {
                         ItemMeta silverMeta = silverKey.getItemMeta();
                         silverMeta.itemName(Component.text("Silver key").color(NamedTextColor.GRAY));
                         silverMeta.lore(List.of(Component.text("Use this key to open silver crates").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+                        silverMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "key_type"), PersistentDataType.STRING, "silver");
                         silverKey.setItemMeta(silverMeta);
                         keys.add(silverKey);
                         break;
@@ -347,6 +362,7 @@ public class DatabaseManager {
                         ItemMeta goldMeta = goldKey.getItemMeta();
                         goldMeta.itemName(Component.text("Gold key").color(NamedTextColor.YELLOW));
                         goldMeta.lore(List.of(Component.text("Use this key to open gold crates").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+                        goldMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "key_type"), PersistentDataType.STRING, "gold");
                         goldKey.setItemMeta(goldMeta);
                         keys.add(goldKey);
                         break;
@@ -356,6 +372,7 @@ public class DatabaseManager {
                         ItemMeta diamondMeta = diamondKey.getItemMeta();
                         diamondMeta.itemName(Component.text("Diamond key").color(NamedTextColor.AQUA));
                         diamondMeta.lore(List.of(Component.text("Use this key to open diamond crates").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+                        diamondMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "key_type"), PersistentDataType.STRING, "diamond");
                         diamondKey.setItemMeta(diamondMeta);
                         keys.add(diamondKey);
                         break;
@@ -366,5 +383,24 @@ public class DatabaseManager {
             plugin.getLogger().severe("Failed to get keys for player " + playerUUID + ": " + e.getMessage());
             return null;
         }
+    }
+
+    public boolean removeKey(UUID playerUUID, ItemStack key) {
+        String keyType = key.getItemMeta().getPersistentDataContainer()
+            .get(new NamespacedKey(plugin, "key_type"), PersistentDataType.STRING);
+        if (keyType != null) {
+            String sql = "UPDATE player_keys SET amount = GREATEST(amount - ?, 0) WHERE player_uuid = ? AND key_type = ?";
+            try (Connection connection = dataSource.getConnection()) {
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.setInt(1, key.getAmount());
+                preparedStatement.setString(2, playerUUID.toString());
+                preparedStatement.setString(3, keyType);
+                int rowsAffected = preparedStatement.executeUpdate();
+                return rowsAffected > 0;
+            } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to remove key for player " + playerUUID + ": " + e.getMessage());
+            }
+        }
+        return false;
     }
 }

@@ -5,6 +5,7 @@ import org.leafhold.lhSkyBlock.utils.DatabaseManager;
 import org.leafhold.lhSkyBlock.crates.KeysHolder;
 
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,11 +15,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
@@ -138,7 +140,41 @@ public class KeysCommand implements CommandExecutor, Listener, TabCompleter {
                     }
                 }
                 player.openInventory(keysInventory);
-                
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
+        if (event.getView().getTopInventory().getHolder() instanceof KeysHolder) {
+            if (event.getClickedInventory() == null) return;
+            if (event.getClickedInventory().getHolder() instanceof Player) {
+                event.setCancelled(true);
+                return;
+            }
+            if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
+                ItemStack clickedItem = event.getCurrentItem();
+                String keyType = clickedItem.getItemMeta().getPersistentDataContainer()
+                    .get(new NamespacedKey(plugin, "key_type"), PersistentDataType.STRING);
+                if (keyType != null) {
+                    event.setCancelled(true);
+                    if (player.getInventory().firstEmpty() == -1) {
+                        player.sendMessage(Component.text("You do not have enough space in your inventory.").color(NamedTextColor.RED));
+                        return;
+                    }
+                    boolean removed = databaseManager.removeKey(player.getUniqueId(), clickedItem);
+                    if (removed) {
+                        event.getClickedInventory().removeItem(clickedItem);
+                        player.getInventory().addItem(clickedItem);
+                    } else {
+                        player.sendMessage(Component.text("There was an error adding the key to your inventory.").color(NamedTextColor.RED));
+                        return;
+                    }
+                } else {
+                    player.sendMessage(Component.text("This item is not a valid key.").color(NamedTextColor.RED));
+                    event.setCancelled(true);
+                }
             }
         }
     }
