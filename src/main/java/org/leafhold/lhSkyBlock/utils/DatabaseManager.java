@@ -403,4 +403,22 @@ public class DatabaseManager {
         }
         return false;
     }
+
+    public boolean addVoteKey(UUID playerUUID) {
+        String sql = "INSERT INTO player_keys (player_uuid, key_type, amount) VALUES (?, 'vote', 1) " +
+            "ON DUPLICATE KEY UPDATE amount = amount + 1";
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, playerUUID.toString());
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected > 0) return true;
+            else {
+                plugin.getLogger().warning("Failed to add vote key for player " + playerUUID);
+                return false;
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to add vote key for player " + playerUUID + ": " + e.getMessage());
+            return false;
+        }
+    }
 }
