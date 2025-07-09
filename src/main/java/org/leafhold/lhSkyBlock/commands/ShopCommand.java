@@ -58,13 +58,13 @@ public class ShopCommand implements CommandExecutor, Listener, TabCompleter {
             }
         }
         
-        this.config = new YamlConfiguration();
+        config = new YamlConfiguration();
         try {
             this.config.load(configFile);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        this.npcRegistry = CitizensAPI.getNPCRegistry();
+        npcRegistry = CitizensAPI.getNPCRegistry();
         setupEconomy();
     }
 

@@ -3,7 +3,7 @@ version: '0.1-SNAPSHOT'
 main: org.leafhold.lhSkyBlock.lhSkyBlock
 api-version: '1.21.5'
 depend: [Vault, WorldEdit, WorldGuard, FancyHolograms]
-softdepend: [LuckPerms, Citizens]
+softdepend: [LuckPerms, Citizens, VotifierPlus]
 commands:
   island:
     description: Manage your island
@@ -16,10 +16,18 @@ commands:
     usage: "/shop [create|delete|edit|list|info]"
     permission: lhskyblock.shop
     permission-message: "You do not have permission to use this command."
+  keys:
+    description: View and manage keys
+    usage: "/keys [setup]"
+    permission: lhskyblock.keys
+    permission-message: "You do not have permission to use this command."
 permissions:
   lhskyblock.island:
     description: Allows players to manage their islands
     default: true
   lhskyblock.shop:
     description: Allows players to manage shops
+    default: false
+  lhskyblock.keys:
+    description: Allows players to manage key commands
     default: false
